@@ -1,5 +1,5 @@
 'use strict';
-importScripts('./packing-pieces.js?v=all-pentominoes-1', './packing-solver.js?v=sizes-2');
+importScripts('./packing-pieces.js?v=tetrominoes-1', './packing-solver.js?v=tetrominoes-1');
 self.onmessage = function (event) {
   const {id, position, seed, size, type} = event.data || {};
   try {

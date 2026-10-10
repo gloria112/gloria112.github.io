@@ -48,9 +48,9 @@ function makeGameRandom(seed) {
   };
 }
 
-function generateDomineeringPosition(rng = Math.random, size = 13) {
-  const ranges = {7:[2,4],9:[4,6],11:[6,9],13:[8,12]};
-  if (!ranges[size]) size = 13;
+function generateDomineeringPosition(rng = Math.random, size = 7) {
+  const ranges = {5:[0,1],7:[1,3],9:[2,4]};
+  if (!ranges[size]) size = 7;
   const [minimum,maximum] = ranges[size];
   const count = minimum + Math.floor(rng() * (maximum - minimum + 1));
   const cells = Array.from({ length: size * size }, (_, index) => index);
@@ -62,7 +62,7 @@ function generateDomineeringPosition(rng = Math.random, size = 13) {
   return { size, blocked: cells.slice(0, count).sort((a, b) => a - b) };
 }
 
-// The browser and optimizer use the same complete pentomino geometry.
+// The browser and optimizer use the same complete tetromino geometry.
 function shapeOffsets(kind, orientation) {
   return PackingPieces.offsets(kind, orientation);
 }
@@ -82,7 +82,7 @@ function shapeCells(kind, player, anchor, size) {
 
 function generatePackingPosition(seed, options = {}) {
   const normalizedSeed = Number(seed) >>> 0;
-  const position = generateDomineeringPosition(makeGameRandom(normalizedSeed), options.size || 13);
+  const position = generateDomineeringPosition(makeGameRandom(normalizedSeed), options.size || 7);
   const rng = makeGameRandom(normalizedSeed ^ 0x9e3779b9);
   const kinds = PackingPieces.families;
   const sequence = Array.from({ length: 64 }, () => {
@@ -202,7 +202,7 @@ function initializeDomineering(widget) {
   const setup=widget.querySelector('[data-game-setup]'),play=widget.querySelector('[data-game-play]'),start=widget.querySelector('[data-game-start]');
   const sizeButtons=[...widget.querySelectorAll('[data-game-size]')];
   if (!board || !status || !reset) return;
-  let position=null, state=null, solution=null, solverError=false, worker=null, gameToken=0, currentView='player', preparing=false, selectedSize=9, lastPointer=null;
+  let position=null, state=null, solution=null, solverError=false, worker=null, gameToken=0, currentView='player', preparing=false, selectedSize=7, lastPointer=null;
   const sourceURL=document.currentScript?.src || new URL('assets/site.js',document.baseURI).href;
   const workerURL=new URL('packing-worker.js',sourceURL);
   workerURL.search=new URL(sourceURL).search;
@@ -241,7 +241,7 @@ function initializeDomineering(widget) {
         if(solution?.exact) {
           const percentage=solution.optimalTiles ? state.coveredTiles/solution.optimalTiles*100 : 100;
           score.innerHTML=`<strong>${percentage.toFixed(1).replace(/\.0$/,'')}%</strong><span>${state.coveredTiles} / ${solution.optimalTiles} squares</span>`;
-        } else score.textContent=solverError?'Optimal solution unavailable.':'Finding optimal solution…';
+        } else score.textContent=solverError?'Optimal offline solution unavailable.':'Finding optimal offline solution…';
       }
     }
     viewButtons.forEach(button=>{
@@ -249,7 +249,7 @@ function initializeDomineering(widget) {
       button.setAttribute('aria-pressed',String(selected));
       button.disabled=!state.finished||(button.dataset.gameView==='optimal'&&!solution?.exact);
     });
-    status.textContent=currentView==='optimal'&&solution?.exact?`Optimal: ${solution.optimalTiles} squares`:`${state.coveredTiles} squares covered`;
+    status.textContent=currentView==='optimal'&&solution?.exact?`Optimal offline solution: ${solution.optimalTiles} squares`:`${state.coveredTiles} squares covered`;
   }
 
   function render() {
@@ -405,7 +405,7 @@ function initializeDomineering(widget) {
   }
   sizeButtons.forEach(button=>button.addEventListener('click',()=>{
     const size=Number(button.dataset.gameSize);
-    if([7,9,11,13].includes(size)){selectedSize=size;updateSizeChoice();}
+    if([5,7,9].includes(size)){selectedSize=size;updateSizeChoice();}
   }));
   if(start)start.addEventListener('click',startSelectedGame);
   reset.addEventListener('click',()=>{

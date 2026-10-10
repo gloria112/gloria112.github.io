@@ -50,7 +50,7 @@
       }
     }
     // Maintain available placements incrementally instead of scanning every
-    // five-cell footprint at each search node.
+    // piece footprint at each search node.
     function occupy(cell) {
       board[cell]=1;words[wordIndex[cell]]|=bit[cell];
       for(const index of byCell[cell])if(hits[index]++===0) {
@@ -85,21 +85,17 @@
         free+=count;minimumEmpty+=count%area;
         if(minimumEmpty>empty)return false;
       }
-      // Pentominoes have checkerboard imbalance 1 or 3. Allow either sign
-      // and every possible color split of unused squares: a necessary bound.
-      let ones=0,threes=0;
+      // All tetrominoes except T are checkerboard-balanced. A T has a
+      // difference of +2 or -2. Allow every possible color split of holes.
+      let tees=0;
       for(const type of initialTypes) {
-        if(colorWeight[type]===1)ones+=counts[type];
-        else if(colorWeight[type]===3)threes+=counts[type];
-        else return true; // Keep the generic equal-area API safe for other sets.
+        if(colorWeight[type]===2)tees+=counts[type];
+        else if(colorWeight[type]!==0)return true;
       }
       const black=(free+difference)/2,white=free-black;
       for(let blackEmpty=Math.max(0,empty-white);blackEmpty<=Math.min(empty,black);blackEmpty++) {
         const required=difference-(2*blackEmpty-empty);
-        for(let positiveThrees=0;positiveThrees<=threes;positiveThrees++) {
-          const remainder=required-(6*positiveThrees-3*threes);
-          if(Math.abs(remainder)<=ones && (remainder+ones)%2===0)return true;
-        }
+        if(Math.abs(required)<=2*tees && (required+2*tees)%4===0)return true;
       }
       return false;
     }
@@ -185,11 +181,11 @@
   // partial packing optimal and never makes generation depend on elapsed time.
   function generate(seed, options={}) {
     seed=Number(seed)>>>0;
-    const size=options.size===undefined?13:options.size;
-    const blockRanges={7:[2,4],9:[4,6],11:[6,9],13:[8,12]};
-    if(!Object.prototype.hasOwnProperty.call(blockRanges,size)||!Number.isInteger(size))throw new Error('Choose a board size of 7, 9, 11 or 13.');
+    const size=options.size===undefined?7:options.size;
+    const blockRanges={5:[0,1],7:[1,3],9:[2,4]};
+    if(!Object.prototype.hasOwnProperty.call(blockRanges,size)||!Number.isInteger(size))throw new Error('Choose a board size of 5, 7 or 9.');
     const [minimumBlocks,maximumBlocks]=blockRanges[size];
-    const started=Date.now(),rng=seededRandom(seed),total=size*size,area=5;
+    const started=Date.now(),rng=seededRandom(seed),total=size*size,area=variants[0].cells.length;
     const neighbors=Array.from({length:total},(_,cell)=>{
       const row=Math.floor(cell/size),col=cell%size;
       return [row?cell-size:-1,row+1<size?cell+size:-1,col?cell-1:-1,col+1<size?cell+1:-1].filter(next=>next>=0);

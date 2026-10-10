@@ -5,18 +5,11 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
   const bases = {
-    F: [[0,1],[0,2],[1,0],[1,1],[2,1]],
-    I: [[0,0],[1,0],[2,0],[3,0],[4,0]],
-    L: [[0,0],[1,0],[2,0],[3,0],[3,1]],
-    N: [[0,0],[0,1],[1,1],[1,2],[1,3]],
-    P: [[0,0],[0,1],[1,0],[1,1],[2,0]],
-    T: [[0,0],[0,1],[0,2],[1,1],[2,1]],
-    U: [[0,0],[0,2],[1,0],[1,1],[1,2]],
-    V: [[0,0],[1,0],[2,0],[2,1],[2,2]],
-    W: [[0,0],[1,0],[1,1],[2,1],[2,2]],
-    X: [[0,1],[1,0],[1,1],[1,2],[2,1]],
-    Y: [[0,0],[1,0],[2,0],[3,0],[1,1]],
-    Z: [[0,0],[0,1],[1,1],[2,1],[2,2]]
+    I: [[0,0],[1,0],[2,0],[3,0]],
+    O: [[0,0],[0,1],[1,0],[1,1]],
+    T: [[0,0],[0,1],[0,2],[1,1]],
+    L: [[0,0],[1,0],[2,0],[2,1]],
+    S: [[0,1],[0,2],[1,0],[1,1]]
   };
   const normalize = cells => {
     const minRow = Math.min(...cells.map(cell => cell[0]));
@@ -49,9 +42,9 @@
   function orientations(kind) { return (byFamily[kind] || []).map(variant => variant.orientation); }
   function description(kind,orientation) {
     const variant = byFamily[kind]?.[Number(orientation)];
-    if (!variant) return 'five-square piece';
+    if (!variant) return 'four-square piece';
     const details = [variant.reflected ? 'mirrored' : '',variant.rotation ? `rotated ${variant.rotation} degrees` : ''].filter(Boolean);
-    return `${kind} pentomino${details.length ? ', '+details.join(', ') : ''}`;
+    return `${kind} tetromino${details.length ? ', '+details.join(', ') : ''}`;
   }
   return Object.freeze({families:Object.freeze(Object.keys(bases)),variants:Object.freeze(variants),offsets,orientations,description});
 });

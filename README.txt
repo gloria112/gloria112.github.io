@@ -34,8 +34,8 @@ elements in research/index.html. Selected papers also appear on index.html.
 The content is present without JavaScript, so search engines can read it.
 The optional JavaScript adds paper search, category filters, and an interactive
 single-player shape-placement game at the bottom of the Teaching page.
-Choose a 7-by-7, 9-by-9, 11-by-11, or 13-by-13 board before starting.
-Every piece covers five squares. All connected five-square shapes are
+Choose a 5-by-5, 7-by-7, or 9-by-9 board before starting; 7-by-7 is the default.
+Every piece covers four squares. All connected four-square shapes are
 possible, including their distinct rotations and reflections.
 Place the current piece without rotating or skipping it. Only the next piece
 is visible. The game ends when the current piece has no legal placement.
@@ -43,15 +43,14 @@ Hover any square that a legal placement could cover; clicking places the
 exact preview. Focus and Enter provide the same choices with the keyboard.
 A fresh seed fixes random blocked squares, with no symmetry requirement,
 and the full sequence of pieces and orientations. Blocked-square ranges
-scale with the board: 2–4 on 7-by-7, 4–6 on 9-by-9, 6–9 on 11-by-11,
-and 8–12 on 13-by-13.
+scale with the board: 0–1 on 5-by-5, 1–3 on 7-by-7, and 2–4 on 9-by-9.
 Boards mix scattered blockers with small clusters and exclude stranded
 regions smaller than a piece. Each puzzle is generated with a packing that
 reaches the free-area bound, then its pieces are shuffled into arrival order.
 Generation favors varied families and limits long runs of the same family.
 New game returns to the size picker; Start game generates a fresh seed.
 Reset replays the same board and sequence.
-At the end, compare your layout with the optimal hindsight solution for the
+At the end, compare your layout with the Optimal offline solution for the
 same board and piece order. The score is 100 times your covered squares
 divided by the optimal covered squares. The optimal
 benchmark is certified by that area-bound packing. Puzzle preparation runs

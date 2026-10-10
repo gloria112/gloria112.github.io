@@ -17,6 +17,8 @@ assets/packing-pieces.js   Shared piece geometry
 assets/packing-worker.js   Seeded puzzle generation
 assets/packing-solver.js   Packing and optimal-layout verification
 assets/leaderboard.js      Shared leaderboard and optional score submission
+assets/player-names.js     Nickname validation shared with the score service
+assets/player-names-LICENSE.txt  Dictionary sources and attribution
 
 PUBLISH ON GITHUB PAGES
 1. Create a public repository named jbrustle01.github.io, under the jbrustle01 account.
@@ -70,8 +72,14 @@ separately from the page in assets/packing-worker.js and packing-solver.js.
 LEADERBOARDS
 A shared top ten is kept separately for 5-by-5, 7-by-7 and 9-by-9 boards.
 Scores are ranked by exact covered/optimal percentage, with newer submissions
-first in a tie. Adding a qualifying score is optional: visitors can choose an
-approved nickname or remain Anonymous. Names are also checked on the server.
+first in a tie. Adding a qualifying score is optional: visitors can enter a
+name or everyday noun, optionally followed by up to five digits, or leave the
+field blank to remain Anonymous. Nicknames are limited to 24 characters and
+checked for vulgar language both in the browser and on the server. Invalid
+names can be corrected without losing the game's submission opportunity.
+The vocabulary includes international given names and surnames, recognized
+full names, and English nouns. It is a broad list, not a complete registry of
+every real name. Dictionary attribution is in assets/player-names-LICENSE.txt.
 The service regenerates the signed starting seed and replays all legal moves
 before accepting a score. Submitted percentages are never trusted. This
 checks a legal replay; it does not claim to distinguish humans from bots.

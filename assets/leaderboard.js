@@ -24,7 +24,7 @@
     const submitPanel = widget.querySelector('[data-leaderboard-submit-panel]');
     const submitStatus = widget.querySelector('[data-leaderboard-submit-status]');
     const submitButton = widget.querySelector('[data-leaderboard-submit]');
-    const namePicker = widget.querySelector('[data-leaderboard-name]');
+    const nameInput = widget.querySelector('[data-leaderboard-name]');
     const sizeButtons = [...widget.querySelectorAll('[data-leaderboard-size]')];
     const pending = new Map();
     const cache = new Map();
@@ -51,9 +51,16 @@
           credentials: 'omit', signal: abort.signal,
           ...(body === undefined ? {} : {headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})
         });
-        if (!response.ok) throw new Error('Leaderboard request failed');
         const data = await response.json();
         if (abort.signal.aborted || pending.get(kind) !== abort) throw new Error('Request cancelled');
+        if (!response.ok) {
+          if (kind === 'submit' && data?.code === 'INVALID_NAME' && typeof data.error === 'string' && data.error.trim() && data.error.length <= 200) {
+            const error = new Error(data.error);
+            error.code = 'INVALID_NAME';
+            throw error;
+          }
+          throw new Error('Leaderboard request failed');
+        }
         return data;
       } finally {
         clearTimeout(timeout);
@@ -116,6 +123,7 @@
       serial++; active = null;
       ['start', 'eligibility', 'submit'].forEach(cancelRequest);
       hideSubmission(); text(submitStatus, '');
+      if (nameInput) nameInput.setAttribute('aria-invalid', 'false');
       setSize(size);
     }
     async function startGame(size) {
@@ -164,7 +172,7 @@
         if (active.qualified) {
           if (submitPanel) submitPanel.toggleAttribute('hidden', false);
           if (submitButton) submitButton.disabled = false;
-          text(submitStatus, `Your score qualifies for the ${size} × ${size} top 10. Choose a nickname if you like, then submit.`);
+          text(submitStatus, `Your score qualifies for the ${size} × ${size} top 10. Enter a nickname if you like, then submit.`);
         } else text(submitStatus, 'This score did not reach the top 10 for this board size.');
       } catch (error) {
         if (active?.id === id) {
@@ -178,12 +186,28 @@
     }
     async function submit() {
       if (!active?.finished || !active.ticket || !active.qualified || active.submitted || pending.has('submit')) return;
+      let checkedName;
+      try {
+        if (typeof root.PackingPlayerNames?.validate !== 'function') throw new Error('Name check unavailable');
+        checkedName = root.PackingPlayerNames.validate(nameInput?.value || '');
+        if (!checkedName || typeof checkedName.ok !== 'boolean') throw new Error('Invalid name check');
+        if (checkedName.ok && typeof checkedName.name !== 'string') throw new Error('Invalid name check');
+      } catch (error) {
+        text(submitStatus, 'Nickname checking is unavailable. Please refresh the page before submitting.');
+        return;
+      }
+      if (!checkedName.ok) {
+        if (nameInput) nameInput.setAttribute('aria-invalid', 'true');
+        text(submitStatus, checkedName.message || 'Please use a different nickname.');
+        return;
+      }
+      if (nameInput) nameInput.setAttribute('aria-invalid', 'false');
       const id = active.id, size = active.size;
       if (submitButton) submitButton.disabled = true;
       text(submitStatus, 'Submitting score…');
       try {
         const data = await request('submit', '/api/leaderboard', {
-          ticket: active.ticket, actions: active.result.actions, name: namePicker?.value || null
+          ticket: active.ticket, actions: active.result.actions, name: checkedName.name
         });
         if (!active || active.id !== id) return;
         const entries = checkedEntries(data, size);
@@ -196,12 +220,16 @@
       } catch (error) {
         if (active?.id === id) {
           if (submitButton) submitButton.disabled = false;
-          text(submitStatus, 'Could not submit your score. Please try again.');
+          if (error.code === 'INVALID_NAME') {
+            if (nameInput) nameInput.setAttribute('aria-invalid', 'true');
+            text(submitStatus, error.message);
+          } else text(submitStatus, 'Could not submit your score. Please try again.');
         }
       }
     }
     sizeButtons.forEach(button => button.addEventListener('click', () => setSize(Number(button.dataset.leaderboardSize), true)));
     if (submitButton) submitButton.addEventListener('click', submit);
+    if (nameInput) nameInput.addEventListener('input', () => nameInput.setAttribute('aria-invalid', 'false'));
     hideSubmission();
     const controller = {startGame, cancelGame, resetGame, finishGame, setSize};
     controllers.set(widget, controller);

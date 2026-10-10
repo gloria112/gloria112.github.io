@@ -12,9 +12,10 @@
   <link rel="canonical" href="https://jbrustle01.github.io/teaching/">
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
   <link rel="stylesheet" href="../assets/style.css">
-  <script src="../assets/packing-pieces.js?v=leaderboard-16" defer></script>
-  <script src="../assets/leaderboard.js?v=leaderboard-16" defer></script>
-  <script src="../assets/site.js?v=leaderboard-16" defer></script>
+  <script src="../assets/packing-pieces.js?v=names-17" defer></script>
+  <script src="../assets/player-names.js?v=names-17" defer></script>
+  <script src="../assets/leaderboard.js?v=names-17" defer></script>
+  <script src="../assets/site.js?v=names-17" defer></script>
   <style id="packing-game-style">
     .game-section{padding:52px 0 60px}
     .no-js .game-section{display:none}
@@ -74,7 +75,7 @@
     .leaderboard-note{color:#8da7b6;font-size:10px;line-height:1.7;margin:10px 0 0}.leaderboard-status,.leaderboard-submit-status{color:#a8c2d2;font-size:11px;line-height:1.7;margin:18px 0 0}.leaderboard-submit-status:empty{display:none}
     .leaderboard-list{list-style:none;margin:12px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px}.leaderboard-list:empty{display:none}
     .leaderboard-entry{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #243847;font-size:12px}.leaderboard-rank{color:#7f9dab}.leaderboard-name{color:#c9dde7;overflow-wrap:anywhere}.leaderboard-score{color:#b5dfed}
-    .leaderboard-submit{margin-top:22px;padding:18px;border:1px solid #3c5669;border-radius:3px;background:#12253680}.leaderboard-submit label{display:block;margin-bottom:10px;font-size:11px;color:#c9dde7}.leaderboard-submit label span{color:#8da7b6}.leaderboard-submit-controls{display:flex;gap:10px}.leaderboard-submit select{min-width:0;flex:1;padding:10px;border:1px solid #54788d;border-radius:3px;background:#0e1c2b;color:#c9dde7;font:12px var(--mono,monospace)}.leaderboard-submit button:disabled{opacity:.5;cursor:default}
+    .leaderboard-submit{margin-top:22px;padding:18px;border:1px solid #3c5669;border-radius:3px;background:#12253680}.leaderboard-submit label{display:block;margin-bottom:10px;font-size:11px;color:#c9dde7}.leaderboard-submit label span{color:#8da7b6}.leaderboard-submit-controls{display:flex;gap:10px}.leaderboard-submit input{min-width:0;flex:1;padding:10px;border:1px solid #54788d;border-radius:3px;background:#0e1c2b;color:#c9dde7;font:12px var(--mono,monospace)}.leaderboard-submit input[aria-invalid="true"]{border-color:#d7978d}.leaderboard-submit input:focus-visible{outline:2px solid #8ac5d8;outline-offset:2px}.leaderboard-submit button:disabled{opacity:.5;cursor:default}
     @media(max-width:600px){.leaderboard-heading{gap:10px}.leaderboard-heading h2{font-size:20px}.leaderboard-sizes button{padding:8px 9px}.leaderboard-list{grid-template-columns:1fr}.leaderboard-submit{padding:14px}.leaderboard-submit-controls{gap:8px}.leaderboard-submit button{padding:8px 10px}}
     @media print{.game-section{display:none}}
   </style>
@@ -147,8 +148,9 @@
         <ol class="leaderboard-list" data-leaderboard-list aria-label="Top scores"></ol>
         <div class="leaderboard-submit" data-leaderboard-submit-panel hidden>
           <label for="leaderboard-name">Nickname <span>(optional)</span></label>
-          <div class="leaderboard-submit-controls"><select id="leaderboard-name" data-leaderboard-name aria-describedby="nickname-help"><option value="">Anonymous</option><option>Aurora Owl</option><option>Blue Comet</option><option>Calm Cedar</option><option>Copper Fox</option><option>Dawn Finch</option><option>Dune Falcon</option><option>Emerald Pine</option><option>Golden Heron</option><option>Indigo Lynx</option><option>Ivory Crane</option><option>Jade Otter</option><option>Lunar Moth</option><option>Maple Wren</option><option>Misty Raven</option><option>Nova Badger</option><option>Ocean Kite</option><option>Opal Robin</option><option>Polar Seal</option><option>Quiet Hawk</option><option>Silver Fern</option><option>Solar Swift</option><option>Starling Vale</option><option>Velvet Birch</option><option>Willow Lark</option></select><button type="button" data-leaderboard-submit>Add my score</button></div>
-          <p class="leaderboard-note" id="nickname-help">Choose an approved nickname to keep the leaderboard welcoming.</p>
+          <div class="leaderboard-submit-controls"><input type="text" id="leaderboard-name" data-leaderboard-name aria-describedby="nickname-help" aria-invalid="false" placeholder="Anonymous" autocomplete="off" maxlength="96" list="nickname-examples"><button type="button" data-leaderboard-submit>Add my score</button></div>
+          <datalist id="nickname-examples"><option value="Johannes"></option><option value="Maple"></option><option value="Falcon"></option><option value="Aurora"></option><option value="Alex"></option><option value="Sofia"></option><option value="River"></option><option value="Robin"></option><option value="Cedar"></option><option value="Luna"></option><option value="Willow"></option><option value="Nova"></option></datalist>
+          <p class="leaderboard-note" id="nickname-help">Use a name or everyday noun, optionally followed by up to five digits (e.g. Johannes42 or Maple7). No vulgar names. Leave blank for Anonymous.</p>
         </div>
         <p class="leaderboard-submit-status" data-leaderboard-submit-status aria-live="polite"></p>
       </section>

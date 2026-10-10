@@ -1,0 +1,46 @@
+Nickname dictionary attributions
+
+The bundled dictionaries are normalized, deduplicated and filtered for use
+in a public leaderboard. They include small manually curated additions.
+They are a broad vocabulary, not a complete registry of every real name.
+
+Popular Names by Country Dataset, sigpwned — CC0 1.0 Universal.
+Localized and romanized given names and surnames, collected from Wikipedia.
+https://github.com/sigpwned/popular-names-by-country-dataset
+https://creativecommons.org/publicdomain/zero/1.0/
+
+Top English Wordlists, david47k — CC BY 3.0 Unported.
+The top 10,000 lower-case noun compilation, based on the Google Ngrams
+English dataset version 20120701, years 1950–2012.
+Adaptations: format filtering, normalization, deduplication, exclusions and
+curated additions. The original author does not endorse this website.
+https://github.com/david47k/top-english-wordlists
+https://creativecommons.org/licenses/by/3.0/
+
+random-name, Dominic Tarr — MIT. Additional given names, from the Moby
+Word List by Grady Ward.
+https://github.com/dominictarr/random-name
+
+Copyright (c) 2012 'Dominic Tarr'
+
+Permission is hereby granted, free of charge, 
+to any person obtaining a copy of this software and 
+associated documentation files (the "Software"), to 
+deal in the Software without restriction, including 
+without limitation the rights to use, copy, modify, 
+merge, publish, distribute, sublicense, and/or sell 
+copies of the Software, and to permit persons to whom 
+the Software is furnished to do so, 
+subject to the following conditions:
+
+The above copyright notice and this permission notice 
+shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. 
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR 
+ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, 
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+

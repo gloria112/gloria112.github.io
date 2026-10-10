@@ -1,9 +1,9 @@
 'use strict';
-importScripts('./packing-pieces.js?v=all-pentominoes-1', './packing-solver.js?v=certified-pentominoes-1');
+importScripts('./packing-pieces.js?v=all-pentominoes-1', './packing-solver.js?v=sizes-2');
 self.onmessage = function (event) {
-  const {id, position, seed, type} = event.data || {};
+  const {id, position, seed, size, type} = event.data || {};
   try {
-    const options={onProgress: progress => self.postMessage({id,type:'progress',...progress})};
+    const options={size,onProgress: progress => self.postMessage({id,type:'progress',...progress})};
     if(type==='generate') {
       const generated=PackingSolver.generate(seed,options);
       self.postMessage({id,type:'generated',...generated});

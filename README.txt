@@ -33,18 +33,22 @@ Edit the relevant HTML file. Publication entries are ordinary HTML article
 elements in research/index.html. Selected papers also appear on index.html.
 The content is present without JavaScript, so search engines can read it.
 The optional JavaScript adds paper search, category filters, and an interactive
-13-by-13 single-player shape-placement game at the bottom of the Teaching page.
+single-player shape-placement game at the bottom of the Teaching page.
+Choose a 7-by-7, 9-by-9, 11-by-11, or 13-by-13 board before starting.
 Every piece covers five squares. All connected five-square shapes are
 possible, including their distinct rotations and reflections.
 Place the current piece without rotating or skipping it. Only the next piece
 is visible. The game ends when the current piece has no legal placement.
-A fresh seed fixes eight to twelve random blocked squares, with no symmetry
-requirement, and the full sequence of pieces and orientations.
+A fresh seed fixes random blocked squares, with no symmetry requirement,
+and the full sequence of pieces and orientations. Blocked-square ranges
+scale with the board: 2–4 on 7-by-7, 4–6 on 9-by-9, 6–9 on 11-by-11,
+and 8–12 on 13-by-13.
 Boards mix scattered blockers with small clusters and exclude stranded
 regions smaller than a piece. Each puzzle is generated with a packing that
 reaches the free-area bound, then its pieces are shuffled into arrival order.
 Generation favors varied families and limits long runs of the same family.
-New game generates a fresh seed; Reset replays the same board and sequence.
+New game returns to the size picker; Start game generates a fresh seed.
+Reset replays the same board and sequence.
 At the end, compare your layout with the optimal hindsight solution for the
 same board and piece order. The score is 100 times your covered squares
 divided by the optimal covered squares. The optimal

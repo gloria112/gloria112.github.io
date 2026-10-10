@@ -185,7 +185,11 @@
   // partial packing optimal and never makes generation depend on elapsed time.
   function generate(seed, options={}) {
     seed=Number(seed)>>>0;
-    const started=Date.now(),rng=seededRandom(seed),size=13,total=size*size,area=5;
+    const size=options.size===undefined?13:options.size;
+    const blockRanges={7:[2,4],9:[4,6],11:[6,9],13:[8,12]};
+    if(!Object.prototype.hasOwnProperty.call(blockRanges,size)||!Number.isInteger(size))throw new Error('Choose a board size of 7, 9, 11 or 13.');
+    const [minimumBlocks,maximumBlocks]=blockRanges[size];
+    const started=Date.now(),rng=seededRandom(seed),total=size*size,area=5;
     const neighbors=Array.from({length:total},(_,cell)=>{
       const row=Math.floor(cell/size),col=cell%size;
       return [row?cell-size:-1,row+1<size?cell+size:-1,col?cell-1:-1,col+1<size?cell+1:-1].filter(next=>next>=0);
@@ -196,7 +200,7 @@
     let attempts=0,totalNodes=0,lastProgress=0;
     for(;;) {
       attempts++;
-      const count=8+Math.floor(rng()*5),blocked=new Set();
+      const count=minimumBlocks+Math.floor(rng()*(maximumBlocks-minimumBlocks+1)),blocked=new Set();
       while(blocked.size<count) {
         let cell;
         if(blocked.size && rng()<0.28) {

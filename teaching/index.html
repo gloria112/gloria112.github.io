@@ -12,12 +12,20 @@
   <link rel="canonical" href="https://jbrustle01.github.io/teaching/">
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
   <link rel="stylesheet" href="../assets/style.css">
-  <script src="../assets/packing-pieces.js?v=pentomino-7" defer></script>
-  <script src="../assets/site.js?v=pentomino-7" defer></script>
+  <script src="../assets/packing-pieces.js?v=packing-sizes-8" defer></script>
+  <script src="../assets/site.js?v=packing-sizes-8" defer></script>
   <style id="packing-game-style">
     .game-section{padding:52px 0 60px}
     .no-js .game-section{display:none}
     .domineering-field{width:min(100%,780px);margin:0 auto}
+    .game-setup{padding:26px;border:1px solid #304454;border-radius:5px;background:linear-gradient(135deg,#14253588,#0d182680)}
+    .game-setup-label{display:block;margin:0 0 17px;font-family:var(--mono,monospace);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#a8c2d2}
+    .game-sizes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    .game-sizes button{min-height:85px;padding:18px 8px;border:1px solid #3c5669;border-radius:3px;background:#0e1c2b;color:#a8c2d2;font-family:var(--display);font-size:24px;letter-spacing:-.04em;cursor:pointer}
+    .game-sizes button[aria-pressed="true"]{color:#e1f5fc;background:#1a3548;border-color:#8ac5d8;box-shadow:inset 0 0 20px #6cadcc0a}
+    .game-sizes button:hover,.game-sizes button:focus-visible{border-color:#b0d9e8;color:#e2f5fc}
+    .game-start{display:block;margin:22px 0 0 auto;padding:10px 22px;border:1px solid #8ac5d8;border-radius:3px;background:#1a3548;color:#e1f5fc;font-family:var(--mono,monospace);font-size:12px;cursor:pointer}
+    .game-start:hover,.game-start:focus-visible{background:#24465b;border-color:#d0ebf5}
     .game-layout{display:grid;grid-template-columns:minmax(0,1fr) 142px;gap:24px;align-items:center}
     .game-sidebar{display:flex;flex-direction:column;gap:20px;justify-content:center;min-width:0}
     .game-score{font-family:var(--mono,monospace);color:#a8c2d2;font-size:11px;line-height:1.7}
@@ -44,7 +52,7 @@
     .game-controls button{font:inherit;letter-spacing:inherit;color:#a8c2d2;background:transparent;border:1px solid #3c5669;border-radius:3px;padding:6px 10px;cursor:pointer;line-height:1.3}
     .game-controls button:hover,.game-controls button:focus-visible{color:#e2f5fc;border-color:#a4cbdc}
     .game-help{font-family:var(--display);font-size:22px;letter-spacing:-.02em;text-align:left;color:#c9dde7;margin:0 0 28px;line-height:1.4}
-    @media(max-width:600px){.game-section{padding:36px 0 42px}.game-layout{display:flex;flex-direction:column;gap:22px}.domineering-board{max-width:430px}.game-sidebar{width:100%;flex-direction:row;align-items:center;gap:20px}.piece-queues{width:142px}.game-score{width:130px}.game-results{width:142px}.game-score strong{font-size:34px}.game-help{font-size:20px;margin-bottom:20px}.game-controls{font-size:10px;margin-top:24px}.game-controls button{padding:7px 9px}}
+    @media(max-width:600px){.game-section{padding:36px 0 42px}.game-setup{padding:20px}.game-sizes{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.game-sizes button{min-height:66px;padding:12px}.game-layout{display:flex;flex-direction:column;gap:22px}.domineering-board{max-width:430px}.game-sidebar{width:100%;flex-direction:row;align-items:center;gap:20px}.piece-queues{width:142px}.game-score{width:130px}.game-results{width:142px}.game-score strong{font-size:34px}.game-help{font-size:20px;margin-bottom:20px}.game-controls{font-size:10px;margin-top:24px}.game-controls button{padding:7px 9px}}
     @media print{.game-section{display:none}}
   </style>
 </head>
@@ -65,10 +73,21 @@
 <section class="section game-section" id="play" aria-labelledby="game-instructions">
     <div class="domineering-field" data-domineering role="group" aria-label="Single-player shape game">
       <p class="game-help" id="game-instructions" data-game-help>Cover as many squares as you can.</p>
+      <div class="game-setup" data-game-setup>
+        <p class="game-setup-label" id="game-size-label">Choose your board</p>
+        <div class="game-sizes" role="group" aria-labelledby="game-size-label">
+          <button type="button" data-game-size="7" aria-pressed="false" aria-label="7 by 7 board">7 × 7</button>
+          <button type="button" data-game-size="9" aria-pressed="true" aria-label="9 by 9 board">9 × 9</button>
+          <button type="button" data-game-size="11" aria-pressed="false" aria-label="11 by 11 board">11 × 11</button>
+          <button type="button" data-game-size="13" aria-pressed="false" aria-label="13 by 13 board">13 × 13</button>
+        </div>
+        <button type="button" class="game-start" data-game-start>Start game</button>
+      </div>
+      <div data-game-play hidden>
       <div class="game-layout">
       <svg xmlns="http://www.w3.org/2000/svg" id="domineering-board" data-domineering-board class="domineering-board" viewBox="-16 0 432 432" fill="none" role="group" aria-labelledby="dm-title" aria-describedby="dm-desc">
         <title id="dm-title">Single-player shape game</title>
-        <desc id="dm-desc">Cover as many squares as you can. Place your current piece on empty squares of the thirteen-by-thirteen board. Every piece covers five squares. You can see the next piece. Shapes and orientations are fixed by the starting seed, and you cannot skip pieces. Hover or focus a square to preview placement, then click or press Enter. The game ends when the current piece cannot fit. Compare your final layout with the optimal placement for the same board and sequence. Your score is the percentage of the optimal number of squares that you covered. New game creates a fresh seed; Reset replays the same start.</desc>
+        <desc id="dm-desc">Cover as many squares as you can. Choose a board size, then place your current piece on empty squares. Every piece covers five squares. You can see the next piece. Shapes and orientations are fixed by the starting seed, and you cannot skip pieces. Hover or focus a square to preview placement, then click or press Enter. The game ends when the current piece cannot fit. Compare your final layout with the optimal placement for the same board and sequence. Your score is the percentage of the optimal number of squares that you covered. New game lets you choose a size and a fresh seed; Reset replays the same start.</desc>
       </svg>
       <div class="game-sidebar">
         <div class="piece-queues" data-piece-queues aria-label="Upcoming pieces"></div>
@@ -80,6 +99,7 @@
       </div>
       </div>
       <div class="game-controls"><span data-game-status aria-live="polite">0 squares covered</span><span class="game-actions"><button type="button" data-game-new>New game</button><button type="button" data-game-reset>Reset</button></span></div>
+      </div>
     </div>
 </section>
 </main>

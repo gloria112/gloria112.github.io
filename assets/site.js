@@ -48,9 +48,11 @@ function makeGameRandom(seed) {
   };
 }
 
-function generateDomineeringPosition(rng = Math.random) {
-  const size = 13;
-  const count = 8 + Math.floor(rng() * 5);
+function generateDomineeringPosition(rng = Math.random, size = 13) {
+  const ranges = {7:[2,4],9:[4,6],11:[6,9],13:[8,12]};
+  if (!ranges[size]) size = 13;
+  const [minimum,maximum] = ranges[size];
+  const count = minimum + Math.floor(rng() * (maximum - minimum + 1));
   const cells = Array.from({ length: size * size }, (_, index) => index);
   // A partial Fisher–Yates shuffle samples distinct blocked squares uniformly.
   for (let index = 0; index < count; index++) {
@@ -78,9 +80,9 @@ function shapeCells(kind, player, anchor, size) {
   return cells;
 }
 
-function generatePackingPosition(seed) {
+function generatePackingPosition(seed, options = {}) {
   const normalizedSeed = Number(seed) >>> 0;
-  const position = generateDomineeringPosition(makeGameRandom(normalizedSeed));
+  const position = generateDomineeringPosition(makeGameRandom(normalizedSeed), options.size || 13);
   const rng = makeGameRandom(normalizedSeed ^ 0x9e3779b9);
   const kinds = PackingPieces.families;
   const sequence = Array.from({ length: 64 }, () => {
@@ -118,6 +120,15 @@ function placePackingPiece(state, anchor) {
     cells: shapeCells(state.currentPiece.kind, state.currentPiece.orientation, anchor, state.size)
   };
   return packingState(state, [...state.placements, piece]);
+}
+
+// Full-cell pointer routing uses the same anchor for preview and placement.
+function packingAnchorAtPoint(size, svgX, svgY) {
+  if (!Number.isFinite(svgX) || !Number.isFinite(svgY)) return -1;
+  const left = (400 - size * 32) / 2, top = 5;
+  const column = Math.floor((svgX - left) / 32), row = Math.floor((svgY - top) / 32);
+  if (row < 0 || row >= size || column < 0 || column >= size) return -1;
+  return row * size + column;
 }
 
 // Trace the boundary of a polyomino so every piece reads as one connected shape.
@@ -169,8 +180,10 @@ function initializeDomineering(widget) {
   const board=widget.querySelector('[data-domineering-board]'),queues=widget.querySelector('[data-piece-queues]');
   const score=widget.querySelector('[data-game-score]'),results=widget.querySelector('[data-game-results]');
   const viewButtons=[...widget.querySelectorAll('[data-game-view]')];
+  const setup=widget.querySelector('[data-game-setup]'),play=widget.querySelector('[data-game-play]'),start=widget.querySelector('[data-game-start]');
+  const sizeButtons=[...widget.querySelectorAll('[data-game-size]')];
   if (!board || !status || !reset) return;
-  let position=null, state=null, solution=null, solverError=false, worker=null, gameToken=0, currentView='player', preparing=false;
+  let position=null, state=null, solution=null, solverError=false, worker=null, gameToken=0, currentView='player', preparing=false, selectedSize=9, lastPointer=null;
   const sourceURL=document.currentScript?.src || new URL('assets/site.js',document.baseURI).href;
   const workerURL=new URL('packing-worker.js',sourceURL);
   workerURL.search=new URL(sourceURL).search;
@@ -230,16 +243,16 @@ function initializeDomineering(widget) {
     for(let anchor=0;anchor<state.size*state.size;anchor++) {
       const {x,y}=cellPosition(anchor),legal=!state.finished&&currentView==='player'&&state.legalMoves.includes(anchor);
       const unavailable=blocked.has(anchor)?'blocked':occupied.has(anchor)?(currentView==='optimal'?`covered by piece ${occupied.get(anchor)}`:'covered'):state.finished?'empty':`place ${shapeDescription(state.currentPiece.kind,state.currentPiece.orientation)}`;
-      markup+=`<g data-domino-cell="${anchor}" role="button" tabindex="${legal?0:-1}" aria-disabled="${!legal}" aria-label="Row ${Math.floor(anchor/state.size)+1}, column ${anchor%state.size+1}: ${unavailable}"><rect x="${x}" y="${y}" width="30" height="30" rx="4" fill="${blocked.has(anchor)?'#14202a':'#142837'}" fill-opacity="${blocked.has(anchor)?'.4':'.68'}" stroke="${blocked.has(anchor)?'#24313c':'#416073'}" stroke-width=".7"/>`;
-      if(blocked.has(anchor))markup+=`<path d="M${x+12} ${y+12}l6 6m0-6l-6 6" stroke="#50606e" stroke-width=".8"/>`;
-      else if(!occupied.has(anchor))markup+=`<circle cx="${x+15}" cy="${y+15}" r=".8" fill="#6d8b9c" opacity=".55"/>`;
-      markup+='</g>';
+      markup+=`<g data-domino-cell="${anchor}" role="button" tabindex="${legal?0:-1}" aria-disabled="${!legal}" aria-label="Row ${Math.floor(anchor/state.size)+1}, column ${anchor%state.size+1}: ${unavailable}"><rect pointer-events="none" x="${x}" y="${y}" width="30" height="30" rx="4" fill="${blocked.has(anchor)?'#14202a':'#142837'}" fill-opacity="${blocked.has(anchor)?'.4':'.68'}" stroke="${blocked.has(anchor)?'#24313c':'#416073'}" stroke-width=".7"/>`;
+      if(blocked.has(anchor))markup+=`<path pointer-events="none" d="M${x+12} ${y+12}l6 6m0-6l-6 6" stroke="#50606e" stroke-width=".8"/>`;
+      else if(!occupied.has(anchor))markup+=`<circle pointer-events="none" cx="${x+15}" cy="${y+15}" r=".8" fill="#6d8b9c" opacity=".55"/>`;
+      markup+=`<rect class="packing-cell-hit" x="${x-1}" y="${y-1}" width="32" height="32" fill="transparent" pointer-events="all"/></g>`;
     }
     markup+='<g pointer-events="none">'+placements.map(piece=>pieceDrawing(piece)).join('')+'</g><g data-domino-preview pointer-events="none"></g>';
     if(currentView==='optimal')markup+='<g data-solution-order pointer-events="none" aria-hidden="true">'+placements.map((piece,index)=>{const {x,y}=cellPosition(piece.anchor);return `<text x="${x+15}" y="${y+18}" text-anchor="middle" fill="#102430" font-family="var(--mono,monospace)" font-size="9" font-weight="600">${index+1}</text>`;}).join('')+'</g>';
     grid.innerHTML=markup;
     widget.dataset.gameView=currentView;
-    renderQueue();updateSummary();
+    renderQueue();updateSummary();refreshPointerPreview();
   }
 
   function placePiece(anchor,keyboard) {
@@ -257,6 +270,24 @@ function initializeDomineering(widget) {
     if(preview)preview.innerHTML=state&&!preparing&&!state.finished&&currentView==='player'&&state.legalMoves.includes(anchor)?pieceDrawing({anchor,...state.currentPiece},true):'';
   }
 
+  function pointerAnchor(event) {
+    if(!state||preparing)return -1;
+    if(!Number.isFinite(event.clientX)||!Number.isFinite(event.clientY))return -1;
+    const matrix=board.getScreenCTM();
+    if(!matrix)return -1;
+    const point=board.createSVGPoint();point.x=event.clientX;point.y=event.clientY;
+    const local=point.matrixTransform(matrix.inverse());
+    return packingAnchorAtPoint(state.size,local.x,local.y);
+  }
+  function refreshPointerPreview() {
+    if(lastPointer)previewPiece(pointerAnchor(lastPointer));
+  }
+  function trackPointer(event) {
+    if(!Number.isFinite(event.clientX)||!Number.isFinite(event.clientY))return;
+    lastPointer={clientX:event.clientX,clientY:event.clientY};
+    refreshPointerPreview();
+  }
+
   function showPreparation(message='Preparing board…',busy=true) {
     grid.innerHTML='';
     if(queues){queues.innerHTML='';queues.toggleAttribute('hidden',true);}
@@ -271,9 +302,12 @@ function initializeDomineering(widget) {
     if(help)help.textContent='Cover as many squares as you can.';
   }
 
-  function preparePuzzle(seed) {
+  function preparePuzzle(seed,size) {
     if(worker)worker.terminate();
-    worker=null;position=null;state=null;solution=null;solverError=false;preparing=true;currentView='player';
+    worker=null;position=null;state=null;solution=null;solverError=false;preparing=true;currentView='player';lastPointer=null;
+    const extent=size*32+16;
+    board.setAttribute('viewBox',`${(400-size*32)/2-8} 0 ${extent} ${extent}`);
+    widget.dataset.size=String(size);
     const token=++gameToken;
     showPreparation();
     function fail() {
@@ -289,7 +323,7 @@ function initializeDomineering(widget) {
         const data=event.data;
         if(!data||token!==gameToken||data.id!==token)return;
         if(data.type==='generated'&&data.solution?.exact===true&&Number.isFinite(data.solution.optimalTiles)
-          &&Array.isArray(data.solution.placements)&&data.position?.seed===seed
+          &&Array.isArray(data.solution.placements)&&data.position?.seed===seed&&data.position.size===size
           &&Array.isArray(data.position.sequence)&&Array.isArray(data.position.blocked)) {
           position=data.position;
           solution={optimalTiles:data.solution.optimalTiles,placements:data.solution.placements,exact:true};
@@ -300,34 +334,66 @@ function initializeDomineering(widget) {
         } else if(data.type==='error')fail();
       };
       activeWorker.onerror=fail;
-      activeWorker.postMessage({id:token,type:'generate',seed});
+      activeWorker.postMessage({id:token,type:'generate',seed,size});
     } catch(error) {fail();}
   }
 
   widget.dataset.gameReady='true';
-  const cellFrom=event=>event.target.closest('[data-domino-cell]');
-  board.addEventListener('click',event=>{const cell=cellFrom(event);if(cell)placePiece(Number(cell.dataset.dominoCell),false);});
+  const cellFrom=event=>event.target?.closest?.('[data-domino-cell]');
+  board.addEventListener('click',event=>{
+    const cell=cellFrom(event);
+    // Assistive-technology clicks have no pointer coordinates; use the focused cell.
+    if(event.detail===0||!Number.isFinite(event.clientX)||!Number.isFinite(event.clientY)) {
+      if(cell)placePiece(Number(cell.dataset.dominoCell),event.detail===0);
+      return;
+    }
+    trackPointer(event);
+    placePiece(pointerAnchor(event),false);
+  });
   board.addEventListener('keydown',event=>{
     if(event.key!=='Enter'&&event.key!==' '&&event.key!=='Spacebar')return;
     const cell=cellFrom(event);if(!cell)return;event.preventDefault();
     if(!event.repeat)placePiece(Number(cell.dataset.dominoCell),true);
   });
-  ['pointerover','focusin'].forEach(type=>board.addEventListener(type,event=>{const cell=cellFrom(event);previewPiece(cell?Number(cell.dataset.dominoCell):-1);}));
-  ['pointerleave','focusout'].forEach(type=>board.addEventListener(type,()=>previewPiece(-1)));
-  function startNewGame() {
-    const seed=typeof crypto!=='undefined'&&typeof crypto.getRandomValues==='function'?crypto.getRandomValues(new Uint32Array(1))[0]:Math.floor(Math.random()*4294967296);
-    widget.dataset.seed=String(seed);preparePuzzle(seed);
+  ['pointerover','pointermove'].forEach(type=>board.addEventListener(type,trackPointer));
+  board.addEventListener('pointerleave',()=>{lastPointer=null;previewPiece(-1);});
+  board.addEventListener('focusin',event=>{const cell=cellFrom(event);previewPiece(cell?Number(cell.dataset.dominoCell):-1);});
+  board.addEventListener('focusout',()=>{previewPiece(-1);refreshPointerPreview();});
+
+  function updateSizeChoice() {
+    sizeButtons.forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.gameSize)===selectedSize)));
+    widget.dataset.selectedSize=String(selectedSize);
   }
+  function showSetup(focusChoice=false) {
+    if(worker)worker.terminate();worker=null;gameToken++;
+    position=null;state=null;solution=null;preparing=false;currentView='player';lastPointer=null;
+    showPreparation('',false);
+    if(setup)setup.toggleAttribute('hidden',false);
+    if(play)play.toggleAttribute('hidden',true);
+    updateSizeChoice();
+    if(focusChoice)sizeButtons.find(button=>Number(button.dataset.gameSize)===selectedSize)?.focus({preventScroll:true});
+  }
+  function startSelectedGame() {
+    if(setup)setup.toggleAttribute('hidden',true);
+    if(play)play.toggleAttribute('hidden',false);
+    const seed=typeof crypto!=='undefined'&&typeof crypto.getRandomValues==='function'?crypto.getRandomValues(new Uint32Array(1))[0]:Math.floor(Math.random()*4294967296);
+    widget.dataset.seed=String(seed);preparePuzzle(seed,selectedSize);
+  }
+  sizeButtons.forEach(button=>button.addEventListener('click',()=>{
+    const size=Number(button.dataset.gameSize);
+    if([7,9,11,13].includes(size)){selectedSize=size;updateSizeChoice();}
+  }));
+  if(start)start.addEventListener('click',startSelectedGame);
   reset.addEventListener('click',()=>{
     if(!position||preparing)return;
-    state=packingState(position);currentView='player';render();
+    state=packingState(position);currentView='player';lastPointer=null;render();
   });
-  if(newGame)newGame.addEventListener('click',startNewGame);
+  if(newGame)newGame.addEventListener('click',()=>showSetup(true));
   viewButtons.forEach(button=>button.addEventListener('click',()=>{
     if(!state||preparing||!state.finished||(button.dataset.gameView==='optimal'&&!solution?.exact))return;
-    currentView=button.dataset.gameView==='optimal'?'optimal':'player';render();
+    currentView=button.dataset.gameView==='optimal'?'optimal':'player';lastPointer=null;render();
   }));
-  startNewGame();
+  showSetup();
 }
 
 document.querySelectorAll('[data-domineering]').forEach(initializeDomineering);

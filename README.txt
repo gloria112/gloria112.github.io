@@ -37,8 +37,12 @@ single-player shape-placement game at the bottom of the Teaching page.
 Choose a 5-by-5, 7-by-7, or 9-by-9 board before starting; 7-by-7 is the default.
 Every piece covers four squares. All connected four-square shapes are
 possible, including their distinct rotations and reflections.
-Place the current piece without rotating or skipping it. The next three pieces
-are visible alongside the current piece. The game ends when the current piece has no legal placement.
+Place the current piece without rotating it. The next three pieces are visible
+alongside the current piece. Click the Hold slot or press H while playing to
+store the current piece and draw the next, or swap it with the held piece.
+Holding is available once per placement; placing a piece unlocks it again.
+The game ends only when the current piece cannot fit and no permitted hold
+can provide a playable piece.
 Hover any square that a legal placement could cover; clicking places the
 exact preview. Focus and Enter provide the same choices with the keyboard.
 A fresh seed fixes random blocked squares, with no symmetry requirement,
@@ -49,11 +53,13 @@ regions smaller than a piece. Each puzzle is generated with a packing that
 reaches the free-area bound, then its pieces are shuffled into arrival order.
 Generation favors varied families and limits long runs of the same family.
 New game returns to the size picker; Start game generates a fresh seed.
-Reset replays the same board and sequence.
+Reset replays the same board and sequence with an empty hold slot.
 At the end, compare your layout with the Optimal offline solution for the
-same board and piece order. The score is 100 times your covered squares
+same board, arrival sequence, and hold rules. The score is 100 times your covered squares
 divided by the optimal covered squares. The optimal
-benchmark is certified by that area-bound packing. Puzzle preparation runs
+benchmark is certified by that area-bound packing: it remains achievable
+without holding, and no use of hold can exceed the board's area bound.
+Puzzle preparation runs
 separately from the page in assets/packing-worker.js and packing-solver.js.
 
 Replace assets/johannes-brustle-cv.pdf to update the downloadable CV.

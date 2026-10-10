@@ -12,8 +12,8 @@
   <link rel="canonical" href="https://jbrustle01.github.io/teaching/">
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
   <link rel="stylesheet" href="../assets/style.css">
-  <script src="../assets/packing-pieces.js?v=tetromino-12" defer></script>
-  <script src="../assets/site.js?v=tetromino-12" defer></script>
+  <script src="../assets/packing-pieces.js?v=hold-13" defer></script>
+  <script src="../assets/site.js?v=hold-13" defer></script>
   <style id="packing-game-style">
     .game-section{padding:52px 0 60px}
     .no-js .game-section{display:none}
@@ -43,6 +43,15 @@
     .piece-preview{display:block;width:100%;height:66px;padding:7px;border:1px solid #2b3b4b;border-radius:3px;background:#10213080}
     .piece-slot.is-current .piece-preview{border-color:currentColor;background:#18304480}
     .piece-slot svg{display:block;width:100%;height:100%;overflow:visible}
+    .hold-panel{border-top:1px solid #304454;padding-top:16px;font-family:var(--mono,monospace)}
+    .game-hold{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:10px;border:1px solid #668fa4;border-radius:3px;background:#142b3c;color:#c2e3ee;cursor:pointer;text-align:center}
+    .game-hold:hover:not(:disabled),.game-hold:focus-visible{border-color:#c4e7f2;background:#1a3548;color:#e2f5fc}
+    .game-hold:disabled{opacity:.45;cursor:default}
+    .hold-preview{display:flex;align-items:center;justify-content:center;width:46px;height:46px;flex-shrink:0;font-size:24px;color:#88b7c9}
+    .hold-preview svg{display:block;width:100%;height:100%;overflow:visible}
+    .hold-label{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;line-height:1.3}
+    .game-hold kbd{font:10px var(--mono,monospace);border:1px solid #54788d;border-radius:3px;padding:1px 5px;color:#a8c2d2}
+    .hold-hint{margin:9px 0 0;color:#8da7b6;font-size:10px;line-height:1.6}
     .domineering-board{display:block;width:100%;height:auto;overflow:visible}
     .domineering-board [data-domino-cell]{cursor:pointer;outline:none}
     .domineering-board [data-domino-cell][aria-disabled="true"]{cursor:default}
@@ -53,6 +62,7 @@
     .game-controls button:hover,.game-controls button:focus-visible{color:#e2f5fc;border-color:#a4cbdc}
     .game-help{font-family:var(--display);font-size:22px;letter-spacing:-.02em;text-align:left;color:#c9dde7;margin:0 0 28px;line-height:1.4}
     @media(max-width:600px){.game-section{padding:36px 0 42px}.game-setup{padding:20px}.game-sizes{gap:10px}.game-sizes button{min-height:66px;padding:12px 4px;font-size:22px}.game-layout{display:flex;flex-direction:column;gap:22px}.domineering-board{max-width:430px}.game-sidebar{width:100%;flex-direction:row;align-items:center;gap:20px}.piece-queues{width:100%;max-width:430px}.piece-slots{grid-template-columns:repeat(4,minmax(0,1fr))}.game-score{width:130px}.game-results{width:142px}.game-score strong{font-size:34px}.game-help{font-size:20px;margin-bottom:20px}.game-controls{font-size:10px;margin-top:24px}.game-controls button{padding:7px 9px}}
+    @media(max-width:600px){.game-sidebar{flex-wrap:wrap;gap:16px;justify-content:center}.hold-panel{display:flex;align-items:center;gap:16px;width:100%;max-width:430px;border-top:0;padding-top:0}.game-hold{width:142px;flex-shrink:0;padding:6px 10px}.hold-preview{width:40px;height:40px}.hold-label{flex-direction:row;gap:8px}.hold-hint{margin:0}}
     @media print{.game-section{display:none}}
   </style>
 </head>
@@ -86,10 +96,17 @@
       <div class="game-layout">
       <svg xmlns="http://www.w3.org/2000/svg" id="domineering-board" data-domineering-board class="domineering-board" viewBox="80 0 240 240" fill="none" role="group" aria-labelledby="dm-title" aria-describedby="dm-desc">
         <title id="dm-title">Single-player shape game</title>
-        <desc id="dm-desc">Cover as many squares as you can. Choose a board size, then place your current piece on empty squares. Every piece covers four squares. You can see the next three pieces. Shapes and orientations are fixed by the starting seed, and you cannot skip pieces. Hover or focus any empty square that the piece could cover to preview a valid placement, then click or press Enter to place the preview. The game ends when the current piece cannot fit. Compare your final layout with the optimal offline solution for the same board and sequence. Your score is the percentage of the optimal number of squares that you covered. New game lets you choose a size and a fresh seed; Reset replays the same start.</desc>
+        <desc id="dm-desc">Cover as many squares as you can. Choose a board size, then place your current piece on empty squares. Every piece covers four squares. You can see the next three pieces. Shapes and orientations are fixed by the starting seed. Hover or focus any empty square that the piece could cover to preview a valid placement, then click or press Enter to place the preview. Click Hold or press H while playing to store the current piece, or swap it with the held piece. You can hold once per placement. The game ends when the current piece cannot fit and holding cannot provide a playable piece. Compare your final layout with the optimal offline solution for the same board, sequence, and hold rules. Your score is the percentage of the optimal number of squares that you covered. New game lets you choose a size and a fresh seed; Reset replays the same start with an empty hold slot.</desc>
       </svg>
       <div class="game-sidebar">
         <div class="piece-queues" data-piece-queues aria-label="Upcoming pieces"></div>
+        <div class="hold-panel" data-hold-panel hidden>
+          <button type="button" class="game-hold" data-game-hold aria-label="Hold current piece" aria-keyshortcuts="H" aria-describedby="game-hold-hint" disabled>
+            <span class="hold-preview" data-hold-preview aria-hidden="true">+</span>
+            <span class="hold-label"><span data-hold-action>Hold</span><kbd>H</kbd></span>
+          </button>
+          <p class="hold-hint" id="game-hold-hint" data-hold-hint>Once per placement.</p>
+        </div>
         <div class="game-score" data-game-score aria-live="polite" hidden></div>
         <div class="game-results" data-game-results hidden>
           <button type="button" data-game-view="player" aria-pressed="true">Your result</button>

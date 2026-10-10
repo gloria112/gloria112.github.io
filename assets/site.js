@@ -93,33 +93,60 @@ function generatePackingPosition(seed, options = {}) {
   return { ...position, seed: normalizedSeed, sequence };
 }
 
-function packingState(position, placements = []) {
+function packingState(position, placements = [], progress = {}) {
   const occupied = new Set(position.blocked);
   placements.forEach(piece => piece.cells.forEach(cell => occupied.add(cell)));
   const index = placements.length;
-  const currentPiece = position.sequence[index];
-  const legalMoves = [];
-  if (currentPiece) {
+  // Stream identity is independent of placement order when a piece is held.
+  const currentIndex = progress.currentIndex ?? index;
+  const nextIndex = progress.nextIndex ?? currentIndex + 1;
+  const heldIndex = progress.heldIndex ?? null;
+  const holdUsed = progress.holdUsed ?? false;
+  const currentPiece = position.sequence[currentIndex];
+  const heldPiece = heldIndex === null ? null : position.sequence[heldIndex];
+  function movesFor(piece) {
+    const moves = [];
+    if (!piece) return moves;
     for (let anchor = 0; anchor < position.size * position.size; anchor++) {
-      const cells = shapeCells(currentPiece.kind, currentPiece.orientation, anchor, position.size);
-      if (cells && cells.every(cell => !occupied.has(cell))) legalMoves.push(anchor);
+      const cells = shapeCells(piece.kind, piece.orientation, anchor, position.size);
+      if (cells && cells.every(cell => !occupied.has(cell))) moves.push(anchor);
     }
+    return moves;
   }
+  const legalMoves = movesFor(currentPiece);
+  const replacement = heldPiece || position.sequence[nextIndex];
+  const canHold = !holdUsed && Boolean(replacement);
+  const holdCanRescue = canHold && movesFor(replacement).length > 0;
   return {
     size: position.size, blocked: [...position.blocked], seed: position.seed, sequence: position.sequence,
-    placements: [...placements], index, currentPiece, queue: position.sequence.slice(index, index + 4),
+    placements: [...placements], index, currentIndex, nextIndex, heldIndex, holdUsed,
+    currentPiece, heldPiece, canHold, holdCanRescue,
+    queue: [currentPiece, ...position.sequence.slice(nextIndex, nextIndex + 3)].filter(Boolean),
     legalMoves, coveredTiles: placements.reduce((sum,piece) => sum + piece.cells.length, 0),
-    finished: legalMoves.length === 0
+    finished: legalMoves.length === 0 && !holdCanRescue
   };
 }
 
 function placePackingPiece(state, anchor) {
   if (state.finished || !state.legalMoves.includes(anchor)) return state;
   const piece = {
-    index: state.index, ...state.currentPiece, anchor,
+    index: state.index, sourceIndex: state.currentIndex, ...state.currentPiece, anchor,
     cells: shapeCells(state.currentPiece.kind, state.currentPiece.orientation, anchor, state.size)
   };
-  return packingState(state, [...state.placements, piece]);
+  return packingState(state, [...state.placements, piece], {
+    currentIndex: state.nextIndex, nextIndex: state.nextIndex + 1,
+    heldIndex: state.heldIndex, holdUsed: false
+  });
+}
+
+function holdPackingPiece(state) {
+  if (state.finished || !state.canHold) return state;
+  const empty = state.heldIndex === null;
+  return packingState(state, state.placements, {
+    currentIndex: empty ? state.nextIndex : state.heldIndex,
+    nextIndex: state.nextIndex + (empty ? 1 : 0),
+    heldIndex: state.currentIndex, holdUsed: true
+  });
 }
 
 // A square can be used whenever some legal placement covers it.
@@ -201,8 +228,10 @@ function initializeDomineering(widget) {
   const viewButtons=[...widget.querySelectorAll('[data-game-view]')];
   const setup=widget.querySelector('[data-game-setup]'),play=widget.querySelector('[data-game-play]'),start=widget.querySelector('[data-game-start]');
   const sizeButtons=[...widget.querySelectorAll('[data-game-size]')];
+  const holdPanel=widget.querySelector('[data-hold-panel]'),holdButton=widget.querySelector('[data-game-hold]');
+  const holdPreview=widget.querySelector('[data-hold-preview]'),holdAction=widget.querySelector('[data-hold-action]'),holdHint=widget.querySelector('[data-hold-hint]');
   if (!board || !status || !reset) return;
-  let position=null, state=null, solution=null, solverError=false, worker=null, gameToken=0, currentView='player', preparing=false, selectedSize=7, lastPointer=null;
+  let position=null, state=null, solution=null, solverError=false, worker=null, gameToken=0, currentView='player', preparing=false, selectedSize=7, lastPointer=null, pointerInGame=false;
   const sourceURL=document.currentScript?.src || new URL('assets/site.js',document.baseURI).href;
   const workerURL=new URL('packing-worker.js',sourceURL);
   workerURL.search=new URL(sourceURL).search;
@@ -217,17 +246,34 @@ function initializeDomineering(widget) {
     return `<path data-placed-shape="${piece.kind}" data-placement-anchor="${piece.anchor}" d="${d}" fill="${preview?'#99dcee':'url(#dm-piece)'}" fill-opacity="${preview?'.17':'.88'}" stroke="#99dcee" stroke-width="${preview?'1.8':'.8'}" stroke-linejoin="round"/>`;
   }
 
+  function pieceIconPath(piece) {
+    const offsets=shapeOffsets(piece.kind,piece.orientation);
+    const minColumn=Math.min(...offsets.map(offset=>offset[1])),minRow=Math.min(...offsets.map(offset=>offset[0]));
+    const width=1+Math.max(...offsets.map(offset=>offset[1]))-minColumn,height=1+Math.max(...offsets.map(offset=>offset[0]))-minRow;
+    const unit=Math.min(10,36/Math.max(width,height));
+    return shapeOutline(piece.kind,piece.orientation,unit,unit*.08,(40-width*unit)/2-minColumn*unit,(40-height*unit)/2-minRow*unit);
+  }
+
   function renderQueue() {
     if (!queues) return;
     queues.innerHTML=`<div class="piece-queue is-active" data-player="solo"><span class="piece-label">Your pieces</span><div class="piece-slots">${state.queue.map((piece,index)=>{
-      const offsets=shapeOffsets(piece.kind,piece.orientation);
-      const minColumn=Math.min(...offsets.map(offset=>offset[1])),minRow=Math.min(...offsets.map(offset=>offset[0]));
-      const width=1+Math.max(...offsets.map(offset=>offset[1]))-minColumn,height=1+Math.max(...offsets.map(offset=>offset[0]))-minRow;
-      const unit=Math.min(10,36/Math.max(width,height));
-      const d=shapeOutline(piece.kind,piece.orientation,unit,unit*.08,(40-width*unit)/2-minColumn*unit,(40-height*unit)/2-minRow*unit);
+      const d=pieceIconPath(piece);
       const label=['Now','Next 1','Next 2','Next 3'][index];
       return `<div class="piece-slot${index===0?' is-current':''}" data-piece-kind="${piece.kind}" data-piece-orientation="${piece.orientation}"><div class="piece-preview"><svg viewBox="0 0 40 40" role="img" aria-label="${label}: ${shapeDescription(piece.kind,piece.orientation)}"><path d="${d}" fill="#99dcee" fill-opacity="${index===0?'.95':'.62'}"/></svg></div><span>${label}</span></div>`;
     }).join('')}</div></div>`;
+  }
+
+  function renderHold() {
+    if(holdPanel)holdPanel.toggleAttribute('hidden',state.finished);
+    if(!holdButton)return;
+    holdButton.disabled=state.finished||!state.canHold;
+    if(holdAction)holdAction.textContent=state.heldPiece?'Swap':'Hold';
+    const heldDescription=state.heldPiece?shapeDescription(state.heldPiece.kind,state.heldPiece.orientation):'';
+    if(holdPreview)holdPreview.innerHTML=state.heldPiece?`<svg viewBox="0 0 40 40" data-held-kind="${state.heldPiece.kind}" data-held-orientation="${state.heldPiece.orientation}"><path d="${pieceIconPath(state.heldPiece)}" fill="#99dcee"/></svg>`:'+';
+    holdButton.setAttribute('aria-label',state.holdUsed
+      ?`Hold unavailable until you place a piece${heldDescription?`. Held: ${heldDescription}`:''}`
+      :state.heldPiece?`Swap current piece with held ${heldDescription}`:'Hold current piece and draw the next piece');
+    if(holdHint)holdHint.textContent=state.holdUsed?'Place a piece to hold again.':state.legalMoves.length===0&&state.holdCanRescue?(state.heldPiece?'Swap to continue.':'Use Hold to continue.'):'Once per placement.';
   }
 
   function updateSummary() {
@@ -249,7 +295,7 @@ function initializeDomineering(widget) {
       button.setAttribute('aria-pressed',String(selected));
       button.disabled=!state.finished||(button.dataset.gameView==='optimal'&&!solution?.exact);
     });
-    status.textContent=currentView==='optimal'&&solution?.exact?`Optimal offline solution: ${solution.optimalTiles} squares`:`${state.coveredTiles} squares covered`;
+    status.textContent=currentView==='optimal'&&solution?.exact?`Optimal offline solution: ${solution.optimalTiles} squares`:!state.finished&&state.legalMoves.length===0&&state.holdCanRescue?`${state.coveredTiles} squares covered · ${state.heldPiece?'Swap':'Use Hold'} to continue.`:`${state.coveredTiles} squares covered`;
   }
 
   function render() {
@@ -261,7 +307,7 @@ function initializeDomineering(widget) {
     let markup='<defs><linearGradient id="dm-piece" x2="1" y2="1"><stop stop-color="#aadfea"/><stop offset="1" stop-color="#4a8eac"/></linearGradient></defs>';
     for(let anchor=0;anchor<state.size*state.size;anchor++) {
       const {x,y}=cellPosition(anchor),legal=currentView==='player'&&resolvePackingAnchor(state,anchor)!==-1;
-      const unavailable=blocked.has(anchor)?'blocked':occupied.has(anchor)?(currentView==='optimal'?`covered by piece ${occupied.get(anchor)}`:'covered'):state.finished?'empty':`place ${shapeDescription(state.currentPiece.kind,state.currentPiece.orientation)} covering this square`;
+      const unavailable=blocked.has(anchor)?'blocked':occupied.has(anchor)?(currentView==='optimal'?`covered by piece ${occupied.get(anchor)}`:'covered'):state.finished||!state.currentPiece?'empty':legal?`place ${shapeDescription(state.currentPiece.kind,state.currentPiece.orientation)} covering this square`:'current piece cannot cover this square';
       markup+=`<g data-domino-cell="${anchor}" role="button" tabindex="${legal?0:-1}" aria-disabled="${!legal}" aria-label="Row ${Math.floor(anchor/state.size)+1}, column ${anchor%state.size+1}: ${unavailable}"><rect pointer-events="none" x="${x}" y="${y}" width="30" height="30" rx="4" fill="${blocked.has(anchor)?'#14202a':'#142837'}" fill-opacity="${blocked.has(anchor)?'.4':'.68'}" stroke="${blocked.has(anchor)?'#24313c':'#416073'}" stroke-width=".7"/>`;
       if(blocked.has(anchor))markup+=`<path pointer-events="none" d="M${x+12} ${y+12}l6 6m0-6l-6 6" stroke="#50606e" stroke-width=".8"/>`;
       else if(!occupied.has(anchor))markup+=`<circle pointer-events="none" cx="${x+15}" cy="${y+15}" r=".8" fill="#6d8b9c" opacity=".55"/>`;
@@ -271,7 +317,13 @@ function initializeDomineering(widget) {
     if(currentView==='optimal')markup+='<g data-solution-order pointer-events="none" aria-hidden="true">'+placements.map((piece,index)=>{const {x,y}=cellPosition(piece.anchor);return `<text x="${x+15}" y="${y+18}" text-anchor="middle" fill="#102430" font-family="var(--mono,monospace)" font-size="9" font-weight="600">${index+1}</text>`;}).join('')+'</g>';
     grid.innerHTML=markup;
     widget.dataset.gameView=currentView;
-    renderQueue();updateSummary();refreshPointerPreview();
+    renderQueue();renderHold();updateSummary();refreshPointerPreview();
+  }
+
+  function focusNextAction() {
+    const target=state.finished?(viewButtons.find(button=>button.dataset.gameView==='player')||newGame||reset)
+      :state.legalMoves.length?board.querySelector(`[data-domino-cell="${state.legalMoves[0]}"]`):holdButton;
+    target?.focus({preventScroll:true});
   }
 
   function placePiece(hoveredCell,keyboard) {
@@ -281,10 +333,14 @@ function initializeDomineering(widget) {
     const next=placePackingPiece(state,anchor);
     if(next===state)return;
     state=next;render();
-    if(keyboard) {
-      const target=state.finished?(viewButtons.find(button=>button.dataset.gameView==='player')||newGame||reset):board.querySelector(`[data-domino-cell="${state.legalMoves[0]}"]`);
-      target.focus({preventScroll:true});
-    }
+    if(keyboard)focusNextAction();
+  }
+  function holdPiece(keyboard) {
+    if(!state||preparing||currentView!=='player')return;
+    const next=holdPackingPiece(state);
+    if(next===state)return;
+    state=next;render();
+    if(keyboard)focusNextAction();
   }
   function previewPiece(hoveredCell) {
     const preview=grid.querySelector('[data-domino-preview]');
@@ -315,6 +371,9 @@ function initializeDomineering(widget) {
     if(queues){queues.innerHTML='';queues.toggleAttribute('hidden',true);}
     if(score){score.textContent='';score.toggleAttribute('hidden',true);}
     if(results)results.toggleAttribute('hidden',true);
+    if(holdPanel)holdPanel.toggleAttribute('hidden',true);
+    if(holdButton)holdButton.disabled=true;
+    if(holdPreview)holdPreview.innerHTML='+';
     viewButtons.forEach(button=>{button.disabled=true;button.setAttribute('aria-pressed',String(button.dataset.gameView==='player'));});
     reset.disabled=true;
     board.setAttribute('aria-busy',String(busy));
@@ -381,6 +440,18 @@ function initializeDomineering(widget) {
   board.addEventListener('pointerleave',()=>{lastPointer=null;previewPiece(-1);});
   board.addEventListener('focusin',event=>{const cell=cellFrom(event);previewPiece(cell?Number(cell.dataset.dominoCell):-1);});
   board.addEventListener('focusout',()=>{previewPiece(-1);refreshPointerPreview();});
+  widget.addEventListener('pointerenter',()=>{pointerInGame=true;});
+  widget.addEventListener('pointerleave',()=>{pointerInGame=false;});
+  if(holdButton)holdButton.addEventListener('click',event=>holdPiece(event.detail===0));
+  document.addEventListener('keydown',event=>{
+    if(event.defaultPrevented||event.repeat||event.ctrlKey||event.metaKey||event.altKey||event.shiftKey||event.key?.toLowerCase()!=='h')return;
+    if(!state||preparing||state.finished||!state.canHold||currentView!=='player')return;
+    const target=event.target;
+    if(target?.isContentEditable||target?.closest?.('input, textarea, select, [contenteditable], [role="textbox"]'))return;
+    const focusedInGame=widget.contains(document.activeElement)||widget.contains(target);
+    if(!pointerInGame&&!focusedInGame)return;
+    event.preventDefault();holdPiece(focusedInGame);
+  });
 
   function updateSizeChoice() {
     sizeButtons.forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.gameSize)===selectedSize)));

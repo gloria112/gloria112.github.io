@@ -37,8 +37,8 @@ single-player shape-placement game at the bottom of the Teaching page.
 Choose a 5-by-5, 7-by-7, or 9-by-9 board before starting; 7-by-7 is the default.
 Every piece covers four squares. All connected four-square shapes are
 possible, including their distinct rotations and reflections.
-Place the current piece without rotating or skipping it. Only the next piece
-is visible. The game ends when the current piece has no legal placement.
+Place the current piece without rotating or skipping it. The next three pieces
+are visible alongside the current piece. The game ends when the current piece has no legal placement.
 Hover any square that a legal placement could cover; clicking places the
 exact preview. Focus and Enter provide the same choices with the keyboard.
 A fresh seed fixes random blocked squares, with no symmetry requirement,

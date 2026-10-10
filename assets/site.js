@@ -107,7 +107,7 @@ function packingState(position, placements = []) {
   }
   return {
     size: position.size, blocked: [...position.blocked], seed: position.seed, sequence: position.sequence,
-    placements: [...placements], index, currentPiece, queue: position.sequence.slice(index, index + 2),
+    placements: [...placements], index, currentPiece, queue: position.sequence.slice(index, index + 4),
     legalMoves, coveredTiles: placements.reduce((sum,piece) => sum + piece.cells.length, 0),
     finished: legalMoves.length === 0
   };
@@ -225,7 +225,7 @@ function initializeDomineering(widget) {
       const width=1+Math.max(...offsets.map(offset=>offset[1]))-minColumn,height=1+Math.max(...offsets.map(offset=>offset[0]))-minRow;
       const unit=Math.min(10,36/Math.max(width,height));
       const d=shapeOutline(piece.kind,piece.orientation,unit,unit*.08,(40-width*unit)/2-minColumn*unit,(40-height*unit)/2-minRow*unit);
-      const label=['Now','Next'][index];
+      const label=['Now','Next 1','Next 2','Next 3'][index];
       return `<div class="piece-slot${index===0?' is-current':''}" data-piece-kind="${piece.kind}" data-piece-orientation="${piece.orientation}"><div class="piece-preview"><svg viewBox="0 0 40 40" role="img" aria-label="${label}: ${shapeDescription(piece.kind,piece.orientation)}"><path d="${d}" fill="#99dcee" fill-opacity="${index===0?'.95':'.62'}"/></svg></div><span>${label}</span></div>`;
     }).join('')}</div></div>`;
   }

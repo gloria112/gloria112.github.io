@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Johannes Brüstle | Algorithms &amp; Economics</title>
+  <meta name="description" content="Johannes Brüstle is an assistant professor at Sapienza University of Rome working on algorithmic game theory, mechanism design, and online optimization.">
+  <meta name="theme-color" content="#0c141f">
+  <meta property="og:title" content="Johannes Brüstle | Algorithms &amp; Economics">
+  <meta property="og:description" content="Johannes Brüstle is an assistant professor at Sapienza University of Rome working on algorithmic game theory, mechanism design, and online optimization.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://jbrustle01.github.io/">
+  <link rel="canonical" href="https://jbrustle01.github.io/">
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+  <link rel="stylesheet" href="./assets/style.css">
+  <script src="./assets/site.js?v=hackenbush-1" defer></script>
+  <style id="hackenbush-motif-style">
+    .hero-heading{min-height:236px;padding-top:28px;padding-bottom:60px}
+    .research-mark.hackenbush-field{width:370px;height:260px;right:-16px;bottom:-8px;opacity:.95;overflow:visible;pointer-events:auto;z-index:1}
+    .hackenbush-board{display:block;width:100%;height:auto;overflow:visible}
+    .hackenbush-field [data-edge]{cursor:pointer;transform-box:fill-box;transform-origin:center;transition:opacity .32s ease,transform .32s ease;outline:none}
+    .hackenbush-field [data-edge][aria-disabled="true"]{cursor:default}
+    .hackenbush-field .hb-edge-core{transition:stroke-width .15s ease}
+    .hackenbush-field [data-edge]:not([aria-disabled="true"]):hover .hb-edge-core,.hackenbush-field [data-edge]:focus-visible .hb-edge-core{stroke-width:5}
+    .hackenbush-field [data-edge]:focus-visible .hb-edge-halo{opacity:.9}
+    .hackenbush-field .hb-hit{pointer-events:stroke}
+    .hackenbush-field [data-node]{pointer-events:none;transition:opacity .32s ease,transform .32s ease}
+    .hackenbush-field .is-cut{opacity:0;transform:translateY(12px);pointer-events:none}
+    .hackenbush-field .is-cut .hb-hit{pointer-events:none}
+    .hb-controls{display:flex;align-items:center;justify-content:space-between;width:66%;margin:-1px auto 0;font-family:var(--mono,monospace);font-size:10px;letter-spacing:.02em;color:#a8c2d2}
+    .hb-controls [data-game-status]{max-width:170px}
+    .hb-controls button{font:inherit;letter-spacing:inherit;color:#a8c2d2;background:transparent;border:1px solid #3c5669;border-radius:2px;padding:3px 8px;cursor:pointer;line-height:1.2}
+    .hb-controls button:hover,.hb-controls button:focus-visible{color:#e2f5fc;border-color:#a4cbdc}
+    .hb-help{font-family:var(--mono,monospace);font-size:10px;letter-spacing:0;text-align:center;color:#7f9cac;margin:6px 0 0;line-height:1.4}
+    @media(max-width:1050px){.research-mark.hackenbush-field{width:280px;height:220px;right:-12px;bottom:-12px;opacity:.9}.hb-controls{width:77%}.hb-help{font-size:9px}}
+    @media(max-width:760px){.hero-heading{min-height:0;padding:15px 0 30px}.research-mark.hackenbush-field{display:block;position:relative;width:min(100%,330px);height:auto;right:auto;bottom:auto;margin:12px auto -10px;opacity:.95}.hb-controls{width:72%;font-size:10px}.hb-help{font-size:10px}}
+    @media(prefers-reduced-motion:reduce){.hackenbush-field [data-edge],.hackenbush-field [data-node],.hackenbush-field .hb-edge-core{transition:none}}
+    @media print{.research-mark.hackenbush-field{display:none}}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="site-header wrap">
+    <a class="brand" href="./" aria-label="Johannes Brüstle — home"><span class="monogram" aria-hidden="true">JB</span><span>Johannes Brüstle</span></a>
+    <nav class="site-nav" aria-label="Main navigation"><a href="./" aria-current="page">About</a><a href="./research/">Research</a><a href="./teaching/">Teaching</a><a href="./cv/">CV</a></nav>
+  </header>
+  <main id="main" class="wrap">
+<section class="hero" aria-labelledby="home-title">
+  <div class="hero-heading"><p class="eyebrow">Algorithms · Economics · Computation</p>
+    <h1 id="home-title">Johannes Brüstle</h1>
+    <div class="research-mark hackenbush-field" data-hackenbush data-ground="0 g2 g3" data-motif="conway-hackenbush" role="group" aria-label="Play Blue–Red Hackenbush">
+      <svg xmlns="http://www.w3.org/2000/svg" class="hackenbush-board" viewBox="0 0 400 230" fill="none" role="group" aria-labelledby="hb-title" aria-describedby="hb-desc">
+      <title id="hb-title">Blue–Red Hackenbush</title>
+      <desc id="hb-desc">A branching position in Conway's two-player combinatorial game, Blue–Red Hackenbush. Ice-blue and coral edges grow from a common ground, with a loop on the right. Blue moves first. Two players alternate, each removing an edge of their color by clicking it or pressing Enter; edges disconnected from the ground fall away. The player with no move loses.</desc>
+      <defs>
+        <linearGradient id="hb-blue" x1="60" y1="200" x2="310" y2="20" gradientUnits="userSpaceOnUse"><stop stop-color="#599ab6"/><stop offset=".48" stop-color="#a8e7f2"/><stop offset="1" stop-color="#6bbddd"/></linearGradient>
+        <linearGradient id="hb-red" x1="290" y1="200" x2="100" y2="25" gradientUnits="userSpaceOnUse"><stop stop-color="#a85e69"/><stop offset=".48" stop-color="#eeaba4"/><stop offset="1" stop-color="#cc7b87"/></linearGradient>
+        <radialGradient id="hb-blue-aura"><stop stop-color="#5dafce" stop-opacity=".13"/><stop offset="1" stop-color="#5dafce" stop-opacity="0"/></radialGradient>
+        <radialGradient id="hb-red-aura"><stop stop-color="#c97783" stop-opacity=".08"/><stop offset="1" stop-color="#c97783" stop-opacity="0"/></radialGradient>
+        <linearGradient id="hb-ground"><stop stop-color="#80adc2" stop-opacity="0"/><stop offset=".28" stop-color="#80adc2" stop-opacity=".6"/><stop offset=".72" stop-color="#80adc2" stop-opacity=".6"/><stop offset="1" stop-color="#80adc2" stop-opacity="0"/></linearGradient>
+        <filter id="hb-soft" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3.4"/></filter>
+        <filter id="hb-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="2.2"/><feComposite in="SourceGraphic" operator="over"/></filter>
+        
+        <path id="hb-trace-left" d="M194 194C199 182 186 174 191 158C181 146 185 136 190 124C175 128 162 121 147 116C128 112 118 104 111 92C99 81 99 67 103 54C96 41 104 33 116 31"/>
+        <path id="hb-trace-right" d="M194 194C199 182 186 174 191 158C181 146 185 136 190 124C211 126 224 116 233 104C247 98 255 88 265 75C282 66 294 63 309 65C318 57 325 49 328 37"/>
+      </defs>
+      <ellipse cx="173" cy="97" rx="132" ry="104" fill="url(#hb-blue-aura)"/>
+      <ellipse cx="279" cy="102" rx="100" ry="94" fill="url(#hb-red-aura)"/>
+      <ellipse cx="194" cy="198" rx="61" ry="8" fill="url(#hb-blue-aura)"/>
+      <g data-edge="e1" data-from="0" data-to="b" data-player="blue" role="button" tabindex="0" aria-label="Cut blue branch 1" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M194 194C199 182 186 174 191 158" stroke="url(#hb-blue)" stroke-width="6.8" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M194 194C199 182 186 174 191 158" stroke="url(#hb-blue)" stroke-width="3.8"/>
+        <path class="hb-hit" d="M194 194C199 182 186 174 191 158" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e2" data-from="b" data-to="c" data-player="blue" role="button" tabindex="0" aria-label="Cut blue branch 2" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M191 158C181 146 185 136 190 124" stroke="url(#hb-blue)" stroke-width="6.5" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M191 158C181 146 185 136 190 124" stroke="url(#hb-blue)" stroke-width="3.5"/>
+        <path class="hb-hit" d="M191 158C181 146 185 136 190 124" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e3" data-from="c" data-to="d" data-player="red" role="button" tabindex="0" aria-label="Cut red branch 3" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M190 124C175 128 162 121 147 116" stroke="url(#hb-red)" stroke-width="6.0" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M190 124C175 128 162 121 147 116" stroke="url(#hb-red)" stroke-width="3.0"/>
+        <path class="hb-hit" d="M190 124C175 128 162 121 147 116" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e4" data-from="d" data-to="e" data-player="blue" role="button" tabindex="0" aria-label="Cut blue branch 4" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M147 116C128 112 118 104 111 92" stroke="url(#hb-blue)" stroke-width="5.7" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M147 116C128 112 118 104 111 92" stroke="url(#hb-blue)" stroke-width="2.7"/>
+        <path class="hb-hit" d="M147 116C128 112 118 104 111 92" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e5" data-from="e" data-to="f" data-player="red" role="button" tabindex="0" aria-label="Cut red branch 5" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M111 92C99 81 99 67 103 54" stroke="url(#hb-red)" stroke-width="5.4" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M111 92C99 81 99 67 103 54" stroke="url(#hb-red)" stroke-width="2.4"/>
+        <path class="hb-hit" d="M111 92C99 81 99 67 103 54" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e6" data-from="e" data-to="g" data-player="blue" role="button" tabindex="0" aria-label="Cut blue branch 6" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M111 92C96 96 81 95 69 91" stroke="url(#hb-blue)" stroke-width="5.1" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M111 92C96 96 81 95 69 91" stroke="url(#hb-blue)" stroke-width="2.1"/>
+        <path class="hb-hit" d="M111 92C96 96 81 95 69 91" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e7" data-from="d" data-to="h" data-player="blue" role="button" tabindex="0" aria-label="Cut blue branch 7" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M147 116C136 101 134 85 145 69" stroke="url(#hb-blue)" stroke-width="5.7" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M147 116C136 101 134 85 145 69" stroke="url(#hb-blue)" stroke-width="2.7"/>
+        <path class="hb-hit" d="M147 116C136 101 134 85 145 69" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e8" data-from="h" data-to="i" data-player="red" role="button" tabindex="0" aria-label="Cut red branch 8" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M145 69C143 59 138 47 139 35" stroke="url(#hb-red)" stroke-width="5.2" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M145 69C143 59 138 47 139 35" stroke="url(#hb-red)" stroke-width="2.2"/>
+        <path class="hb-hit" d="M145 69C143 59 138 47 139 35" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e9" data-from="c" data-to="j" data-player="red" role="button" tabindex="0" aria-label="Cut red branch 9" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M190 124C202 111 194 96 188 84" stroke="url(#hb-red)" stroke-width="6.0" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M190 124C202 111 194 96 188 84" stroke="url(#hb-red)" stroke-width="3.0"/>
+        <path class="hb-hit" d="M190 124C202 111 194 96 188 84" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e10" data-from="j" data-to="k" data-player="blue" role="button" tabindex="0" aria-label="Cut blue branch 10" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M188 84C180 73 174 61 177 47" stroke="url(#hb-blue)" stroke-width="5.6" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M188 84C180 73 174 61 177 47" stroke="url(#hb-blue)" stroke-width="2.6"/>
+        <path class="hb-hit" d="M188 84C180 73 174 61 177 47" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e11" data-from="k" data-to="l" data-player="red" role="button" tabindex="0" aria-label="Cut red branch 11" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M177 47C181 36 188 27 198 22" stroke="url(#hb-red)" stroke-width="5.1" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M177 47C181 36 188 27 198 22" stroke="url(#hb-red)" stroke-width="2.1"/>
+        <path class="hb-hit" d="M177 47C181 36 188 27 198 22" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e12" data-from="j" data-to="m" data-player="blue" role="button" tabindex="0" aria-label="Cut blue branch 12" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M188 84C207 85 214 73 221 60" stroke="url(#hb-blue)" stroke-width="5.5" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M188 84C207 85 214 73 221 60" stroke="url(#hb-blue)" stroke-width="2.5"/>
+        <path class="hb-hit" d="M188 84C207 85 214 73 221 60" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e13" data-from="c" data-to="n" data-player="blue" role="button" tabindex="0" aria-label="Cut blue branch 13" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M190 124C211 126 224 116 233 104" stroke="url(#hb-blue)" stroke-width="6.0" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M190 124C211 126 224 116 233 104" stroke="url(#hb-blue)" stroke-width="3.0"/>
+        <path class="hb-hit" d="M190 124C211 126 224 116 233 104" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e14" data-from="n" data-to="o" data-player="red" role="button" tabindex="0" aria-label="Cut red branch 14" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M233 104C247 98 255 88 265 75" stroke="url(#hb-red)" stroke-width="5.7" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M233 104C247 98 255 88 265 75" stroke="url(#hb-red)" stroke-width="2.7"/>
+        <path class="hb-hit" d="M233 104C247 98 255 88 265 75" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e15" data-from="o" data-to="p" data-player="blue" role="button" tabindex="0" aria-label="Cut blue branch 15" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M265 75C266 58 272 46 283 36" stroke="url(#hb-blue)" stroke-width="5.5" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M265 75C266 58 272 46 283 36" stroke="url(#hb-blue)" stroke-width="2.5"/>
+        <path class="hb-hit" d="M265 75C266 58 272 46 283 36" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e16" data-from="o" data-to="q" data-player="red" role="button" tabindex="0" aria-label="Cut red branch 16" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M265 75C282 66 294 63 309 65" stroke="url(#hb-red)" stroke-width="5.5" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M265 75C282 66 294 63 309 65" stroke="url(#hb-red)" stroke-width="2.5"/>
+        <path class="hb-hit" d="M265 75C282 66 294 63 309 65" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e17" data-from="q" data-to="r" data-player="blue" role="button" tabindex="0" aria-label="Cut blue branch 17" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M309 65C322 68 331 77 335 88" stroke="url(#hb-blue)" stroke-width="5.1" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M309 65C322 68 331 77 335 88" stroke="url(#hb-blue)" stroke-width="2.1"/>
+        <path class="hb-hit" d="M309 65C322 68 331 77 335 88" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e18" data-from="n" data-to="s" data-player="red" role="button" tabindex="0" aria-label="Cut red branch 18" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M233 104C237 121 244 135 255 142" stroke="url(#hb-red)" stroke-width="5.7" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M233 104C237 121 244 135 255 142" stroke="url(#hb-red)" stroke-width="2.7"/>
+        <path class="hb-hit" d="M233 104C237 121 244 135 255 142" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e19" data-from="s" data-to="t" data-player="blue" role="button" tabindex="0" aria-label="Cut blue branch 19" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M255 142C269 147 281 143 290 134" stroke="url(#hb-blue)" stroke-width="5.4" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M255 142C269 147 281 143 290 134" stroke="url(#hb-blue)" stroke-width="2.4"/>
+        <path class="hb-hit" d="M255 142C269 147 281 143 290 134" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e20" data-from="t" data-to="u" data-player="red" role="button" tabindex="0" aria-label="Cut red branch 20" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M290 134C305 119 322 126 323 148" stroke="url(#hb-red)" stroke-width="5.1" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M290 134C305 119 322 126 323 148" stroke="url(#hb-red)" stroke-width="2.1"/>
+        <path class="hb-hit" d="M290 134C305 119 322 126 323 148" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e21" data-from="t" data-to="u" data-player="blue" role="button" tabindex="0" aria-label="Cut blue branch 21" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M290 134C288 152 305 164 323 148" stroke="url(#hb-blue)" stroke-width="5.1" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M290 134C288 152 305 164 323 148" stroke="url(#hb-blue)" stroke-width="2.1"/>
+        <path class="hb-hit" d="M290 134C288 152 305 164 323 148" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e22" data-from="e" data-to="v" data-player="red" role="button" tabindex="0" aria-label="Cut red branch 22" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M111 92C112 108 103 119 90 125" stroke="url(#hb-red)" stroke-width="5.0" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M111 92C112 108 103 119 90 125" stroke="url(#hb-red)" stroke-width="2.0"/>
+        <path class="hb-hit" d="M111 92C112 108 103 119 90 125" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e23" data-from="v" data-to="w" data-player="blue" role="button" tabindex="0" aria-label="Cut blue branch 23" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M90 125C80 132 67 128 63 119" stroke="url(#hb-blue)" stroke-width="4.8" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M90 125C80 132 67 128 63 119" stroke="url(#hb-blue)" stroke-width="1.8"/>
+        <path class="hb-hit" d="M90 125C80 132 67 128 63 119" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e24" data-from="f" data-to="x" data-player="blue" role="button" tabindex="0" aria-label="Cut blue branch 24" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M103 54C96 41 104 33 116 31" stroke="url(#hb-blue)" stroke-width="4.8" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M103 54C96 41 104 33 116 31" stroke="url(#hb-blue)" stroke-width="1.8"/>
+        <path class="hb-hit" d="M103 54C96 41 104 33 116 31" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e25" data-from="h" data-to="y" data-player="red" role="button" tabindex="0" aria-label="Cut red branch 25" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M145 69C155 67 166 75 160 87" stroke="url(#hb-red)" stroke-width="4.9" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M145 69C155 67 166 75 160 87" stroke="url(#hb-red)" stroke-width="1.9"/>
+        <path class="hb-hit" d="M145 69C155 67 166 75 160 87" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e26" data-from="m" data-to="z" data-player="red" role="button" tabindex="0" aria-label="Cut red branch 26" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M221 60C229 58 235 51 239 43" stroke="url(#hb-red)" stroke-width="5.0" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M221 60C229 58 235 51 239 43" stroke="url(#hb-red)" stroke-width="2.0"/>
+        <path class="hb-hit" d="M221 60C229 58 235 51 239 43" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e27" data-from="q" data-to="aa" data-player="blue" role="button" tabindex="0" aria-label="Cut blue branch 27" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M309 65C318 57 325 49 328 37" stroke="url(#hb-blue)" stroke-width="4.9" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M309 65C318 57 325 49 328 37" stroke="url(#hb-blue)" stroke-width="1.9"/>
+        <path class="hb-hit" d="M309 65C318 57 325 49 328 37" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e28" data-from="r" data-to="ab" data-player="red" role="button" tabindex="0" aria-label="Cut red branch 28" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M335 88C326 103 313 111 302 101" stroke="url(#hb-red)" stroke-width="4.9" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M335 88C326 103 313 111 302 101" stroke="url(#hb-red)" stroke-width="1.9"/>
+        <path class="hb-hit" d="M335 88C326 103 313 111 302 101" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e29" data-from="b" data-to="ac" data-player="red" role="button" tabindex="0" aria-label="Cut red branch 29" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M191 158C167 150 149 145 128 151" stroke="url(#hb-red)" stroke-width="5.6" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M191 158C167 150 149 145 128 151" stroke="url(#hb-red)" stroke-width="2.6"/>
+        <path class="hb-hit" d="M191 158C167 150 149 145 128 151" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e30" data-from="ac" data-to="ad" data-player="blue" role="button" tabindex="0" aria-label="Cut blue branch 30" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M128 151C115 148 104 150 94 157" stroke="url(#hb-blue)" stroke-width="5.0" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M128 151C115 148 104 150 94 157" stroke="url(#hb-blue)" stroke-width="2.0"/>
+        <path class="hb-hit" d="M128 151C115 148 104 150 94 157" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e31" data-from="g2" data-to="s" data-player="red" role="button" tabindex="0" aria-label="Cut red branch 31" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M264 194C266 179 257 159 255 142" stroke="url(#hb-red)" stroke-width="6.1" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M264 194C266 179 257 159 255 142" stroke="url(#hb-red)" stroke-width="3.1"/>
+        <path class="hb-hit" d="M264 194C266 179 257 159 255 142" stroke="transparent" stroke-width="15"/>
+      </g><g data-edge="e32" data-from="g3" data-to="ac" data-player="blue" role="button" tabindex="0" aria-label="Cut blue branch 32" stroke-linecap="round" stroke-linejoin="round">
+        <path class="hb-edge-halo" d="M95 194C97 177 111 160 128 151" stroke="url(#hb-blue)" stroke-width="5.9" filter="url(#hb-soft)" opacity=".35"/>
+        <path class="hb-edge-core" d="M95 194C97 177 111 160 128 151" stroke="url(#hb-blue)" stroke-width="2.9"/>
+        <path class="hb-hit" d="M95 194C97 177 111 160 128 151" stroke="transparent" stroke-width="15"/>
+      </g>
+      <g fill="#d4edf3" stroke="#0c141f" stroke-width="1.5"><circle data-node="0" cx="194" cy="194" r="1.65" opacity="0.7"/><circle data-node="b" cx="191" cy="158" r="2.7" opacity="0.9"/><circle data-node="c" cx="190" cy="124" r="2.7" opacity="0.9"/><circle data-node="d" cx="147" cy="116" r="2.7" opacity="0.9"/><circle data-node="e" cx="111" cy="92" r="2.7" opacity="0.9"/><circle data-node="f" cx="103" cy="54" r="2.2" opacity="0.9"/><circle data-node="g" cx="69" cy="91" r="1.65" opacity="0.7"/><circle data-node="h" cx="145" cy="69" r="2.7" opacity="0.9"/><circle data-node="i" cx="139" cy="35" r="1.65" opacity="0.7"/><circle data-node="j" cx="188" cy="84" r="2.7" opacity="0.9"/><circle data-node="k" cx="177" cy="47" r="2.2" opacity="0.9"/><circle data-node="l" cx="198" cy="22" r="1.65" opacity="0.7"/><circle data-node="m" cx="221" cy="60" r="2.2" opacity="0.9"/><circle data-node="n" cx="233" cy="104" r="2.7" opacity="0.9"/><circle data-node="o" cx="265" cy="75" r="2.7" opacity="0.9"/><circle data-node="p" cx="283" cy="36" r="1.65" opacity="0.7"/><circle data-node="q" cx="309" cy="65" r="2.7" opacity="0.9"/><circle data-node="r" cx="335" cy="88" r="2.2" opacity="0.9"/><circle data-node="s" cx="255" cy="142" r="2.7" opacity="0.9"/><circle data-node="t" cx="290" cy="134" r="2.7" opacity="0.9"/><circle data-node="u" cx="323" cy="148" r="2.2" opacity="0.9"/><circle data-node="v" cx="90" cy="125" r="2.2" opacity="0.9"/><circle data-node="w" cx="63" cy="119" r="1.65" opacity="0.7"/><circle data-node="x" cx="116" cy="31" r="1.65" opacity="0.7"/><circle data-node="y" cx="160" cy="87" r="1.65" opacity="0.7"/><circle data-node="z" cx="239" cy="43" r="1.65" opacity="0.7"/><circle data-node="aa" cx="328" cy="37" r="1.65" opacity="0.7"/><circle data-node="ab" cx="302" cy="101" r="1.65" opacity="0.7"/><circle data-node="ac" cx="128" cy="151" r="2.7" opacity="0.9"/><circle data-node="ad" cx="94" cy="157" r="1.65" opacity="0.7"/><circle data-node="g2" cx="264" cy="194" r="1.65" opacity="0.7"/><circle data-node="g3" cx="95" cy="194" r="1.65" opacity="0.7"/></g>
+      <path d="M44 194H356" stroke="url(#hb-ground)" stroke-width="1"/>
+      <g stroke="#78a8bb" stroke-width=".7" opacity=".24"><path d="M120 198l-5 5"/><path d="M130 198l-5 5"/><path d="M140 198l-5 5"/><path d="M150 198l-5 5"/><path d="M160 198l-5 5"/><path d="M170 198l-5 5"/><path d="M180 198l-5 5"/><path d="M190 198l-5 5"/><path d="M200 198l-5 5"/><path d="M210 198l-5 5"/><path d="M220 198l-5 5"/><path d="M230 198l-5 5"/><path d="M240 198l-5 5"/><path d="M250 198l-5 5"/><path d="M260 198l-5 5"/><path d="M270 198l-5 5"/></g>
+      <circle data-node="0" cx="194" cy="194" r="3.5" fill="#d5f3f7" filter="url(#hb-glow)"/>
+
+      <text x="200" y="217" text-anchor="middle" fill="#a1bbc9" font-family="var(--mono,monospace)" font-size="7.5" letter-spacing="2.7">HACKENBUSH</text>
+    </svg>
+      <div class="hb-controls"><span data-game-status aria-live="polite">Blue to move</span><button type="button" data-game-reset>Reset</button></div>
+      <p class="hb-help">Cut your color. Disconnected branches fall.</p>
+    </div>
+  </div>
+  <div class="hero-bio">
+    <p class="intro">I am a <strong>fixed-term assistant professor (RTDA)</strong> at <a href="https://www.uniroma1.it/en/">Sapienza University of Rome</a>, in the Department of Computer, Control and Management Engineering (<a href="https://www.diag.uniroma1.it/">DIAG</a>).</p>
+    <p class="intro">My research lies at the intersection of algorithms and economics, with a focus on mechanism design and decision-making under uncertainty.</p>
+    <div class="link-row"><a class="text-link" href="research/">Explore my research <span class="arrow" aria-hidden="true">↗</span></a><a class="text-link" href="assets/johannes-brustle-cv.pdf">Download CV <span class="arrow" aria-hidden="true">↓</span></a></div>
+  </div>
+  <aside class="aside" aria-label="Research areas">
+    <!-- To add a portrait, place portrait.jpg in assets and insert: <img class="portrait" src="assets/portrait.jpg" alt="Johannes Brüstle" width="600" height="750"> -->
+    <p class="aside-label">Research interests</p>
+    <ol class="areas"><li><span class="number" aria-hidden="true">01</span><span>Algorithmic game theory &amp; mechanism design</span></li><li><span class="number" aria-hidden="true">02</span><span>Prophet inequalities &amp; online optimization</span></li><li><span class="number" aria-hidden="true">03</span><span>Algorithms with predictions</span></li><li><span class="number" aria-hidden="true">04</span><span>Contracts &amp; social choice</span></li></ol>
+    <p class="aside-note">Theoretical foundations of machine learning and AI-mediated markets.</p>
+  </aside>
+</section>
+<section class="section" aria-labelledby="recent-title"><div class="section-heading"><h2 id="recent-title">Recent research</h2><a class="text-link" href="research/">All papers <span class="arrow" aria-hidden="true">↗</span></a></div>
+<article class="paper" data-paper data-kind="publications">
+      <div class="paper-year">2026</div><div>
+      <h3><a href="https://arxiv.org/abs/2504.20508">The Panel Complexity of Sortition: Is 12 Angry Men Enough?</a></h3><p class="authors"><strong>Johannes Brüstle</strong>, Simone Fioravanti, Tomasz Ponitka, Jeremy Vollen</p>
+      <p class="venue">Advances in Neural Information Processing Systems (NeurIPS), 2026</p>
+      <div class="paper-links"><a href="https://arxiv.org/abs/2504.20508">arXiv <span aria-hidden="true">↗</span></a><a href="https://arxiv.org/pdf/2504.20508">PDF <span aria-hidden="true">↗</span></a></div></div>
+    </article><article class="paper" data-paper data-kind="preprints">
+      <div class="paper-year">2026</div><div>
+      <h3><a href="https://arxiv.org/abs/2602.17358">Prophet Inequality with Conservative Prediction</a></h3><p class="authors"><strong>Johannes Brüstle</strong>, Ilan Reuven Cohen, Stefano Leonardi</p>
+      <p class="venue">Preprint, 2026</p>
+      <div class="paper-links"><a href="https://arxiv.org/abs/2602.17358">arXiv <span aria-hidden="true">↗</span></a><a href="https://arxiv.org/pdf/2602.17358">PDF <span aria-hidden="true">↗</span></a></div></div>
+    </article><article class="paper" data-paper data-kind="preprints">
+      <div class="paper-year">2026</div><div>
+      <h3><a href="https://arxiv.org/abs/2602.12118">Anonymous Contracts</a></h3><p class="authors"><strong>Johannes Brüstle</strong>, Paul Dütting, Stefano Leonardi, Tomasz Ponitka, Matteo Russo</p>
+      <p class="venue">Preprint, 2026</p>
+      <div class="paper-links"><a href="https://arxiv.org/abs/2602.12118">arXiv <span aria-hidden="true">↗</span></a><a href="https://arxiv.org/pdf/2602.12118">PDF <span aria-hidden="true">↗</span></a></div></div>
+    </article>
+</section>
+<section class="section two-column" aria-label="Academic background">
+  <div><h2>Academic positions</h2><ol class="timeline"><li><span class="date">May 2025 – May 2028</span><span class="title">Fixed-term assistant professor (RTDA)</span><span class="detail">Sapienza University of Rome</span></li><li><span class="date">May 2024 – May 2025</span><span class="title">Postdoctoral researcher</span><span class="detail">Sapienza University of Rome</span></li></ol></div>
+  <div><h2>Education</h2><ol class="timeline"><li><span class="date">2020 – 2024</span><span class="title">PhD in Mathematics · London School of Economics</span><span class="detail">Advisors: Paul Dütting and László Végh</span></li><li><span class="date">2017 – 2019</span><span class="title">MSc in Computer Science · McGill University</span><span class="detail">Advisors: Yang Cai and Adrian Vetta</span></li><li><span class="date">2013 – 2017</span><span class="title">BSc in Mathematics and Computer Science</span><span class="detail">Joint Honours · McGill University</span></li></ol></div>
+</section>
+<section class="section contact-strip" aria-labelledby="contact-title"><div><h2 id="contact-title">Get in touch</h2><p>Department of Computer, Control and Management Engineering<br>Sapienza University of Rome</p></div><a class="text-link" href="mailto:brustle@diag.uniroma1.it">brustle@diag.uniroma1.it <span class="arrow" aria-hidden="true">↗</span></a></section></main>
+  <footer class="site-footer wrap">
+    <div><div class="footer-name">Johannes Brüstle</div><p class="footer-detail">Sapienza University of Rome · DIAG</p></div>
+    <div class="footer-links"><a href="mailto:brustle@diag.uniroma1.it">Email</a><a href="https://scholar.google.com/citations?user=ef6YVs4AAAAJ&amp;hl=en&amp;sortby=pubdate">Google Scholar <span aria-hidden="true">↗</span></a><a href="./assets/johannes-brustle-cv.pdf">CV <span aria-hidden="true">↓</span></a></div>
+  </footer>
+</body></html>

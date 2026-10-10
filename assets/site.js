@@ -301,20 +301,21 @@ function initializeDomineering(widget) {
   function render() {
     if(!state||preparing)return;
     const placements=currentView==='optimal'&&solution?.exact?solution.placements:state.placements;
+    const pieceNumber=(piece,index)=>(piece.sourceIndex??piece.index??index)+1;
     const occupied=new Map();
-    placements.forEach((piece,index)=>piece.cells.forEach(cell=>occupied.set(cell,index+1)));
+    placements.forEach((piece,index)=>piece.cells.forEach(cell=>occupied.set(cell,pieceNumber(piece,index))));
     const blocked=new Set(state.blocked);
     let markup='<defs><linearGradient id="dm-piece" x2="1" y2="1"><stop stop-color="#aadfea"/><stop offset="1" stop-color="#4a8eac"/></linearGradient></defs>';
     for(let anchor=0;anchor<state.size*state.size;anchor++) {
       const {x,y}=cellPosition(anchor),legal=currentView==='player'&&resolvePackingAnchor(state,anchor)!==-1;
-      const unavailable=blocked.has(anchor)?'blocked':occupied.has(anchor)?(currentView==='optimal'?`covered by piece ${occupied.get(anchor)}`:'covered'):state.finished||!state.currentPiece?'empty':legal?`place ${shapeDescription(state.currentPiece.kind,state.currentPiece.orientation)} covering this square`:'current piece cannot cover this square';
+      const unavailable=blocked.has(anchor)?'blocked':occupied.has(anchor)?`covered by piece ${occupied.get(anchor)}`:state.finished||!state.currentPiece?'empty':legal?`place ${shapeDescription(state.currentPiece.kind,state.currentPiece.orientation)} covering this square`:'current piece cannot cover this square';
       markup+=`<g data-domino-cell="${anchor}" role="button" tabindex="${legal?0:-1}" aria-disabled="${!legal}" aria-label="Row ${Math.floor(anchor/state.size)+1}, column ${anchor%state.size+1}: ${unavailable}"><rect pointer-events="none" x="${x}" y="${y}" width="30" height="30" rx="4" fill="${blocked.has(anchor)?'#14202a':'#142837'}" fill-opacity="${blocked.has(anchor)?'.4':'.68'}" stroke="${blocked.has(anchor)?'#24313c':'#416073'}" stroke-width=".7"/>`;
       if(blocked.has(anchor))markup+=`<path pointer-events="none" d="M${x+12} ${y+12}l6 6m0-6l-6 6" stroke="#50606e" stroke-width=".8"/>`;
       else if(!occupied.has(anchor))markup+=`<circle pointer-events="none" cx="${x+15}" cy="${y+15}" r=".8" fill="#6d8b9c" opacity=".55"/>`;
       markup+=`<rect class="packing-cell-hit" x="${x-1}" y="${y-1}" width="32" height="32" fill="transparent" stroke-width="0" pointer-events="all"/></g>`;
     }
     markup+='<g pointer-events="none">'+placements.map(piece=>pieceDrawing(piece)).join('')+'</g><g data-domino-preview pointer-events="none"></g>';
-    if(currentView==='optimal')markup+='<g data-solution-order pointer-events="none" aria-hidden="true">'+placements.map((piece,index)=>{const {x,y}=cellPosition(piece.anchor);return `<text x="${x+15}" y="${y+18}" text-anchor="middle" fill="#102430" font-family="var(--mono,monospace)" font-size="9" font-weight="600">${index+1}</text>`;}).join('')+'</g>';
+    markup+='<g data-solution-order pointer-events="none" aria-hidden="true">'+placements.map((piece,index)=>{const {x,y}=cellPosition(piece.anchor),number=pieceNumber(piece,index);return `<text data-piece-number="${number}" data-piece-source-index="${number-1}" x="${x+15}" y="${y+18}" text-anchor="middle" fill="#102430" font-family="var(--mono,monospace)" font-size="9" font-weight="600">${number}</text>`;}).join('')+'</g>';
     grid.innerHTML=markup;
     widget.dataset.gameView=currentView;
     renderQueue();renderHold();updateSummary();refreshPointerPreview();

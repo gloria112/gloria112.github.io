@@ -41,6 +41,8 @@ Place the current piece without rotating it. The next three pieces are visible
 alongside the current piece. Click the Hold slot or press H while playing to
 store the current piece and draw the next, or swap it with the held piece.
 Holding is available once per placement; placing a piece unlocks it again.
+Each placed piece immediately shows its original arrival number, so pieces
+can be matched to the optimal layout even when holding changes their order.
 The game ends only when the current piece cannot fit and no permitted hold
 can provide a playable piece.
 Hover any square that a legal placement could cover; clicking places the

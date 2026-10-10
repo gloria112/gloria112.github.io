@@ -11,7 +11,7 @@ teaching/index.html        Teaching experience
 cv/index.html              Academic background
 assets/johannes-brustle-cv.pdf  Downloadable public CV
 assets/style.css           Appearance and responsive layout
-assets/site.js             Paper filters, search, and the Hackenbush game
+assets/site.js             Paper filters, search, and two-player games
 
 PUBLISH ON GITHUB PAGES
 1. Create a public repository named jbrustle01.github.io, under the jbrustle01 account.
@@ -30,7 +30,9 @@ Edit the relevant HTML file. Publication entries are ordinary HTML article
 elements in research/index.html. Selected papers also appear on index.html.
 The content is present without JavaScript, so search engines can read it.
 The optional JavaScript adds paper search, category filters, and an interactive
-blue-and-red Hackenbush game on the homepage.
+game selector for Blue–Red Hackenbush and Domineering on the homepage.
+Selecting a game or choosing New game generates a random starting position.
+Reset replays the current position.
 
 Replace assets/johannes-brustle-cv.pdf to update the downloadable CV.
 
@@ -48,4 +50,3 @@ Open a terminal in this folder and run:
 python3 -m http.server 8765 --bind 127.0.0.1
 Then visit http://127.0.0.1:8765/ in a browser.
 Press Control-C in that terminal to stop the preview.
-

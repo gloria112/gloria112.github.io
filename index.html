@@ -12,11 +12,20 @@
   <link rel="canonical" href="https://jbrustle01.github.io/">
   <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
   <link rel="stylesheet" href="./assets/style.css">
-  <script src="./assets/site.js?v=hackenbush-1" defer></script>
+  <script src="./assets/site.js?v=games-3" defer></script>
   <style id="hackenbush-motif-style">
-    .hero-heading{min-height:236px;padding-top:28px;padding-bottom:60px}
-    .research-mark.hackenbush-field{width:370px;height:260px;right:-16px;bottom:-8px;opacity:.95;overflow:visible;pointer-events:auto;z-index:1}
+    .hero-heading{min-height:290px;padding-top:45px;padding-bottom:60px}
+    .research-mark.hackenbush-field{width:370px;height:300px;right:-16px;bottom:4px;opacity:.95;overflow:visible;pointer-events:auto;z-index:1}
     .hackenbush-board{display:block;width:100%;height:auto;overflow:visible}
+    .hb-game-tabs{display:flex;justify-content:center;gap:16px;margin:0 0 6px;font-family:var(--mono,monospace)}
+    .hb-game-tabs button{font:inherit;font-size:10px;letter-spacing:.03em;color:#819caf;background:none;border:0;border-bottom:1px solid transparent;padding:5px 0;cursor:pointer}
+    .hb-game-tabs button[aria-selected="true"]{color:#d4edf5;border-bottom-color:#95cbdc}
+    .hb-game-tabs button:hover,.hb-game-tabs button:focus-visible{color:#e2f5fc;outline-offset:4px}
+    .domineering-board{display:block;width:100%;height:auto;overflow:visible}
+    .hackenbush-board[hidden],.domineering-board[hidden]{display:none}
+    .domineering-board [data-domino-cell]{cursor:pointer;outline:none}
+    .domineering-board [data-domino-cell][aria-disabled="true"]{cursor:default}
+    .domineering-board [data-domino-cell]:focus-visible rect{stroke:#e2f5fc;stroke-width:1.5}
     .hackenbush-field [data-edge]{cursor:pointer;transform-box:fill-box;transform-origin:center;transition:opacity .32s ease,transform .32s ease;outline:none}
     .hackenbush-field [data-edge][aria-disabled="true"]{cursor:default}
     .hackenbush-field .hb-edge-core{transition:stroke-width .15s ease}
@@ -28,10 +37,11 @@
     .hackenbush-field .is-cut .hb-hit{pointer-events:none}
     .hb-controls{display:flex;align-items:center;justify-content:space-between;width:66%;margin:-1px auto 0;font-family:var(--mono,monospace);font-size:10px;letter-spacing:.02em;color:#a8c2d2}
     .hb-controls [data-game-status]{max-width:170px}
+    .hb-actions{display:flex;gap:6px;align-items:center}
     .hb-controls button{font:inherit;letter-spacing:inherit;color:#a8c2d2;background:transparent;border:1px solid #3c5669;border-radius:2px;padding:3px 8px;cursor:pointer;line-height:1.2}
     .hb-controls button:hover,.hb-controls button:focus-visible{color:#e2f5fc;border-color:#a4cbdc}
     .hb-help{font-family:var(--mono,monospace);font-size:10px;letter-spacing:0;text-align:center;color:#7f9cac;margin:6px 0 0;line-height:1.4}
-    @media(max-width:1050px){.research-mark.hackenbush-field{width:280px;height:220px;right:-12px;bottom:-12px;opacity:.9}.hb-controls{width:77%}.hb-help{font-size:9px}}
+    @media(max-width:1050px){.hero-heading{min-height:246px;padding-top:35px}.research-mark.hackenbush-field{width:280px;height:260px;right:-12px;bottom:4px;opacity:.9}.hb-controls{width:77%}.hb-help{font-size:9px}}
     @media(max-width:760px){.hero-heading{min-height:0;padding:15px 0 30px}.research-mark.hackenbush-field{display:block;position:relative;width:min(100%,330px);height:auto;right:auto;bottom:auto;margin:12px auto -10px;opacity:.95}.hb-controls{width:72%;font-size:10px}.hb-help{font-size:10px}}
     @media(prefers-reduced-motion:reduce){.hackenbush-field [data-edge],.hackenbush-field [data-node],.hackenbush-field .hb-edge-core{transition:none}}
     @media print{.research-mark.hackenbush-field{display:none}}
@@ -47,10 +57,14 @@
 <section class="hero" aria-labelledby="home-title">
   <div class="hero-heading"><p class="eyebrow">Algorithms · Economics · Computation</p>
     <h1 id="home-title">Johannes Brüstle</h1>
-    <div class="research-mark hackenbush-field" data-hackenbush data-ground="0 g2 g3" data-motif="conway-hackenbush" role="group" aria-label="Play Blue–Red Hackenbush">
-      <svg xmlns="http://www.w3.org/2000/svg" class="hackenbush-board" viewBox="0 0 400 230" fill="none" role="group" aria-labelledby="hb-title" aria-describedby="hb-desc">
+    <div class="research-mark hackenbush-field" data-hackenbush data-active-game="hackenbush" data-ground="0 g2 g3" data-motif="conway-games" role="group" aria-label="Two-player games">
+      <div class="hb-game-tabs" role="tablist" aria-label="Choose a game">
+        <button type="button" role="tab" id="hackenbush-tab" data-game-choice="hackenbush" aria-selected="true" aria-controls="hackenbush-board">Hackenbush</button>
+        <button type="button" role="tab" id="domineering-tab" data-game-choice="domineering" aria-selected="false" aria-controls="domineering-board">Domineering</button>
+      </div>
+      <svg xmlns="http://www.w3.org/2000/svg" id="hackenbush-board" data-hackenbush-board class="hackenbush-board" viewBox="0 0 400 230" fill="none" role="group" aria-labelledby="hb-title" aria-describedby="hb-desc">
       <title id="hb-title">Blue–Red Hackenbush</title>
-      <desc id="hb-desc">A branching position in Conway's two-player combinatorial game, Blue–Red Hackenbush. Ice-blue and coral edges grow from a common ground, with a loop on the right. Blue moves first. Two players alternate, each removing an edge of their color by clicking it or pressing Enter; edges disconnected from the ground fall away. The player with no move loses.</desc>
+      <desc id="hb-desc">A branching position in Conway's two-player combinatorial game, Blue–Red Hackenbush. Blue moves first. Two players alternate, each removing an edge of their color by clicking it or pressing Enter; edges disconnected from the ground fall away. The player with no move loses. New game generates a fresh position; Reset restores the current position.</desc>
       <defs>
         <linearGradient id="hb-blue" x1="60" y1="200" x2="310" y2="20" gradientUnits="userSpaceOnUse"><stop stop-color="#599ab6"/><stop offset=".48" stop-color="#a8e7f2"/><stop offset="1" stop-color="#6bbddd"/></linearGradient>
         <linearGradient id="hb-red" x1="290" y1="200" x2="100" y2="25" gradientUnits="userSpaceOnUse"><stop stop-color="#a85e69"/><stop offset=".48" stop-color="#eeaba4"/><stop offset="1" stop-color="#cc7b87"/></linearGradient>
@@ -202,8 +216,12 @@
 
       <text x="200" y="217" text-anchor="middle" fill="#a1bbc9" font-family="var(--mono,monospace)" font-size="7.5" letter-spacing="2.7">HACKENBUSH</text>
     </svg>
-      <div class="hb-controls"><span data-game-status aria-live="polite">Blue to move</span><button type="button" data-game-reset>Reset</button></div>
-      <p class="hb-help">Cut your color. Disconnected branches fall.</p>
+      <svg xmlns="http://www.w3.org/2000/svg" id="domineering-board" data-domineering-board class="domineering-board" viewBox="0 0 400 230" fill="none" role="group" aria-labelledby="dm-title" aria-describedby="dm-desc" hidden>
+        <title id="dm-title">Domineering</title>
+        <desc id="dm-desc">Two players take turns placing dominoes on an irregular board. Blue places vertical dominoes and Red places horizontal dominoes. Click a square or press Enter to place a domino there and in the next square below or to the right. The player with no legal move loses. New game generates a fresh board; Reset restores the current board.</desc>
+      </svg>
+      <div class="hb-controls"><span data-game-status aria-live="polite">Blue to move</span><span class="hb-actions"><button type="button" data-game-new>New game</button><button type="button" data-game-reset>Reset</button></span></div>
+      <p class="hb-help" data-game-help>Cut your color. Disconnected branches fall.</p>
     </div>
   </div>
   <div class="hero-bio">

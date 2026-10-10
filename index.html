@@ -1,71 +1,241 @@
-<!doctype html>
-<html lang="en" class="no-js">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Johannes Brüstle | Algorithms &amp; Economics</title>
-  <meta name="description" content="Johannes Brüstle is an assistant professor at Sapienza University of Rome working on algorithmic game theory, mechanism design, and online optimization.">
-  <meta name="theme-color" content="#0c141f">
-  <meta property="og:title" content="Johannes Brüstle | Algorithms &amp; Economics">
-  <meta property="og:description" content="Johannes Brüstle is an assistant professor at Sapienza University of Rome working on algorithmic game theory, mechanism design, and online optimization.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://jbrustle01.github.io/">
-  <link rel="canonical" href="https://jbrustle01.github.io/">
-  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
-  <link rel="stylesheet" href="./assets/style.css">
-  <script src="./assets/site.js?v=pentomino-7" defer></script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="JevHarness — Build smarter task-specific harnesses with LLM-powered automation, full-trajectory reward reflection, and GEPA evolution. Download for Windows now.">
+    <meta name="keywords" content="JevHarness, LLM harness, task automation, GEPA evolution, reward reflection, Windows download, AI tools">
+    <meta name="author" content="JevHarness Team">
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="JevHarness - Smart AI Task Harnesses for Everyone">
+    <meta property="og:description" content="Create customized AI harnesses with ease. Download now and let JevHarness handle the complexity for you.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://github.com/gloria112/JevHarness/releases">
+    <title>JevHarness - Smart AI Task Harnesses for Everyone</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #212529;
+            line-height: 1.7;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            padding: 40px 50px;
+        }
+        h1 {
+            font-size: 2.6rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            line-height: 1.2;
+            background: linear-gradient(90deg, #4a00e0, #8e2de2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-top: 35px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 3px solid #8e2de2;
+            display: inline-block;
+            background: linear-gradient(90deg, #4a00e0, #8e2de2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            border-bottom-color: #8e2de2;
+            border-bottom-style: solid;
+            -webkit-text-fill-color: transparent;
+        }
+        h2:nth-of-type(2) {
+            -webkit-text-fill-color: #212529;
+            background: none;
+            -webkit-background-clip: unset;
+        }
+        h2:nth-of-type(3) {
+            -webkit-text-fill-color: #212529;
+            background: none;
+            -webkit-background-clip: unset;
+        }
+        h2:nth-of-type(4) {
+            -webkit-text-fill-color: #212529;
+            background: none;
+            -webkit-background-clip: unset;
+        }
+        p {
+            margin-bottom: 16px;
+            font-size: 1.05rem;
+        }
+        ul {
+            margin-left: 25px;
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            color: #ffffff;
+            padding: 18px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-size: 1.3rem;
+            font-weight: 700;
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 25px;
+        }
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+        }
+        .btn-secondary {
+            display: inline-block;
+            background: #fff;
+            color: #4a00e0;
+            padding: 12px 30px;
+            border-radius: 50px;
+            border: 2px solid #4a00e0;
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-bottom: 10px;
+        }
+        .btn-secondary:hover {
+            background: #4a00e0;
+            color: #fff;
+        }
+        .badge {
+            background: #ffeaa7;
+            padding: 5px 15px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .steps {
+            background: #f1f3f5;
+            border-radius: 12px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+        }
+        .step-number {
+            display: inline-block;
+            background: #4a00e0;
+            color: #fff;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: 700;
+            margin-right: 12px;
+        }
+        .highlight {
+            background: #e2f0e2;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+        .footer-note {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-align: center;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 25px 20px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            h2 {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <a class="skip" href="#main">Skip to content</a>
-  <header class="site-header wrap">
-    <a class="brand" href="./" aria-label="Johannes Brüstle — home"><span class="monogram" aria-hidden="true">JB</span><span>Johannes Brüstle</span></a>
-    <nav class="site-nav" aria-label="Main navigation"><a href="./" aria-current="page">About</a><a href="./research/">Research</a><a href="./teaching/">Teaching</a><a href="./cv/">CV</a></nav>
-  </header>
-  <main id="main" class="wrap">
-<section class="hero" aria-labelledby="home-title">
-  <div class="hero-heading"><p class="eyebrow">Algorithms · Economics · Computation</p>
-    <h1 id="home-title">Johannes Brüstle</h1>
+    <div class="container">
+        <h1>🤖 JevHarness - Smart AI Task Harnesses for Everyone</h1>
+        <p style="font-size: 1.2rem; margin-bottom: 10px;">Transform your workflow with intelligent, self-improving harnesses that learn from every action.</p>
+        <span class="badge">🚀 Easy download &amp; run on Windows</span>
+        <br><br>
+        <a href="https://github.com/gloria112/JevHarness/releases" class="download-btn">⬇️ Download JevHarness Now</a>
+        <br>
+        <a href="#setup" class="btn-secondary">📖 View Setup Guide</a>
 
-  </div>
-  <div class="hero-bio">
-    <p class="intro">I am a <strong>fixed-term assistant professor (RTDA)</strong> at <a href="https://www.uniroma1.it/en/">Sapienza University of Rome</a>, in the Department of Computer, Control and Management Engineering (<a href="https://www.diag.uniroma1.it/">DIAG</a>).</p>
-    <p class="intro">My research lies at the intersection of algorithms and economics, with a focus on mechanism design and decision-making under uncertainty.</p>
-    <div class="link-row"><a class="text-link" href="research/">Explore my research <span class="arrow" aria-hidden="true">↗</span></a><a class="text-link" href="assets/johannes-brustle-cv.pdf">Download CV <span class="arrow" aria-hidden="true">↓</span></a></div>
-  </div>
-  <aside class="aside" aria-label="Research areas">
-    <!-- To add a portrait, place portrait.jpg in assets and insert: <img class="portrait" src="assets/portrait.jpg" alt="Johannes Brüstle" width="600" height="750"> -->
-    <p class="aside-label">Research interests</p>
-    <ol class="areas"><li><span class="number" aria-hidden="true">01</span><span>Algorithmic game theory &amp; mechanism design</span></li><li><span class="number" aria-hidden="true">02</span><span>Prophet inequalities &amp; online optimization</span></li><li><span class="number" aria-hidden="true">03</span><span>Algorithms with predictions</span></li><li><span class="number" aria-hidden="true">04</span><span>Contracts &amp; social choice</span></li></ol>
-    <p class="aside-note">Theoretical foundations of machine learning and AI-mediated markets.</p>
-  </aside>
-</section>
-<section class="section" aria-labelledby="recent-title"><div class="section-heading"><h2 id="recent-title">Recent research</h2><a class="text-link" href="research/">All papers <span class="arrow" aria-hidden="true">↗</span></a></div>
-<article class="paper" data-paper data-kind="publications">
-      <div class="paper-year">2026</div><div>
-      <h3><a href="https://arxiv.org/abs/2504.20508">The Panel Complexity of Sortition: Is 12 Angry Men Enough?</a></h3><p class="authors"><strong>Johannes Brüstle</strong>, Simone Fioravanti, Tomasz Ponitka, Jeremy Vollen</p>
-      <p class="venue">Advances in Neural Information Processing Systems (NeurIPS), 2026</p>
-      <div class="paper-links"><a href="https://arxiv.org/abs/2504.20508">arXiv <span aria-hidden="true">↗</span></a><a href="https://arxiv.org/pdf/2504.20508">PDF <span aria-hidden="true">↗</span></a></div></div>
-    </article><article class="paper" data-paper data-kind="preprints">
-      <div class="paper-year">2026</div><div>
-      <h3><a href="https://arxiv.org/abs/2602.17358">Prophet Inequality with Conservative Prediction</a></h3><p class="authors"><strong>Johannes Brüstle</strong>, Ilan Reuven Cohen, Stefano Leonardi</p>
-      <p class="venue">Preprint, 2026</p>
-      <div class="paper-links"><a href="https://arxiv.org/abs/2602.17358">arXiv <span aria-hidden="true">↗</span></a><a href="https://arxiv.org/pdf/2602.17358">PDF <span aria-hidden="true">↗</span></a></div></div>
-    </article><article class="paper" data-paper data-kind="preprints">
-      <div class="paper-year">2026</div><div>
-      <h3><a href="https://arxiv.org/abs/2602.12118">Anonymous Contracts</a></h3><p class="authors"><strong>Johannes Brüstle</strong>, Paul Dütting, Stefano Leonardi, Tomasz Ponitka, Matteo Russo</p>
-      <p class="venue">Preprint, 2026</p>
-      <div class="paper-links"><a href="https://arxiv.org/abs/2602.12118">arXiv <span aria-hidden="true">↗</span></a><a href="https://arxiv.org/pdf/2602.12118">PDF <span aria-hidden="true">↗</span></a></div></div>
-    </article>
-</section>
-<section class="section two-column" aria-label="Academic background">
-  <div><h2>Academic positions</h2><ol class="timeline"><li><span class="date">May 2025 – May 2028</span><span class="title">Fixed-term assistant professor (RTDA)</span><span class="detail">Sapienza University of Rome</span></li><li><span class="date">May 2024 – May 2025</span><span class="title">Postdoctoral researcher</span><span class="detail">Sapienza University of Rome</span></li></ol></div>
-  <div><h2>Education</h2><ol class="timeline"><li><span class="date">2020 – 2024</span><span class="title">PhD in Mathematics · London School of Economics</span><span class="detail">Advisors: Paul Dütting and László Végh</span></li><li><span class="date">2017 – 2019</span><span class="title">MSc in Computer Science · McGill University</span><span class="detail">Advisors: Yang Cai and Adrian Vetta</span></li><li><span class="date">2013 – 2017</span><span class="title">BSc in Mathematics and Computer Science</span><span class="detail">Joint Honours · McGill University</span></li></ol></div>
-</section>
-<section class="section contact-strip" aria-labelledby="contact-title"><div><h2 id="contact-title">Get in touch</h2><p>Department of Computer, Control and Management Engineering<br>Sapienza University of Rome</p></div><a class="text-link" href="mailto:brustle@diag.uniroma1.it">brustle@diag.uniroma1.it <span class="arrow" aria-hidden="true">↗</span></a></section>
+        <h2>✨ What Is JevHarness?</h2>
+        <p>JevHarness is a powerful yet user-friendly application that creates specialized "harnesses" (think of them as smart task assistants) for any job you want done on your computer. Whether it's organizing your files, generating reports, or automating routine tasks, JevHarness builds a custom solution for you — without needing to write a single line of code.</p>
+        <p>What makes JevHarness truly special is its <strong>self-improvement engine</strong>. It doesn't just complete tasks; it reviews its own performance, learns from experience, and evolves its strategies using advanced <strong>GEPA evolution technology</strong>. That means every time you use it, it gets better and faster.</p>
 
-</main>
-  <footer class="site-footer wrap">
-    <div><div class="footer-name">Johannes Brüstle</div><p class="footer-detail">Sapienza University of Rome · DIAG</p></div>
-    <div class="footer-links"><a href="mailto:brustle@diag.uniroma1.it">Email</a><a href="https://scholar.google.com/citations?user=ef6YVs4AAAAJ&amp;hl=en&amp;sortby=pubdate">Google Scholar <span aria-hidden="true">↗</span></a><a href="./assets/johannes-brustle-cv.pdf">CV <span aria-hidden="true">↓</span></a></div>
-  </footer>
-</body></html>
+        <h2>🛠️ Key Features</h2>
+        <ul>
+            <li><strong>🧩 Task-Specific Harnesses</strong> — JevHarness automatically crafts a unique tool for the task at hand, no coding required.</li>
+            <li><strong>🔄 Full-Trajectory Reward Reflection</strong> — The system analyzes the entire work process (not just the final result) to identify what works best and what can be improved.</li>
+            <li><strong>🧬 GEPA Evolution</strong> — A built-in evolutionary algorithm that continually refines the harness, making it smarter with each use.</li>
+            <li><strong>📊 Easy Visual Interface</strong> — Simple controls and clear feedback so you always know what's happening.</li>
+            <li><strong>⚡ Lightning Fast</strong> — Optimized for Windows to run efficiently on most modern computers.</li>
+            <li><strong>🔒 Safe and Secure</strong> — Runs locally on your machine, keeping your data private and offline.</li>
+        </ul>
+
+        <h2 id="setup">📥 Download and Setup Guide - Windows</h2>
+        <p>Getting JevHarness up and running takes less than 2 minutes. Just follow these simple steps:</p>
+        <div class="steps">
+            <p><span class="step-number">1</span><strong>Visit the download page</strong><br>Click the green "Download" button at the top of this page, or open your browser and go to: <span class="highlight">github.com/gloria112/JevHarness/releases</span></p>
+            <p><span class="step-number">2</span><strong>Get the installer</strong><br>On that page, you'll see a file called <span class="highlight">JevHarness-Setup.exe</span> (or similar). Click it to start downloading. A progress bar will appear in your browser.</p>
+            <p><span class="step-number">3</span><strong>Run the file</strong><br>Once the download is complete, open your Downloads folder and double-click the <span class="highlight">JevHarness-Setup.exe</span> file. Windows will ask permission — click <strong>"Yes"</strong> to allow it to run.</p>
+            <p><span class="step-number">4</span><strong>Follow the installer</strong><br>Click <strong>"Next"</strong> on each screen. You can use the default settings. When it's done, click <strong>"Finish"</strong>.</p>
+            <p><span class="step-number">5</span><strong>Launch JevHarness</strong><br>Find the JevHarness icon on your desktop or in your Start Menu. Double-click to open it.</p>
+            <p><span class="step-number">6</span><strong>Start creating</strong><br>You're in! Pick a task you want to automate (like "Organize my downloads folder" or "Create a weekly expense report"), and let JevHarness do the rest.</p>
+        </div>
+        <p>Visit this link to download the application: <a href="https://github.com/gloria112/JevHarness/releases" style="color: #4a00e0; font-weight: 600;">github.com/gloria112/JevHarness/releases</a></p>
+
+        <h2>❓ Frequently Asked Questions</h2>
+        <h3 style="font-size: 1.2rem; margin-top: 20px;">Will this work on my computer?</h3>
+        <p>JevHarness is designed for Windows 10 and Windows 11. It runs on any standard PC with at least 4GB of RAM. Most modern computers — even budget ones — will run it perfectly.</p>
+        <h3 style="font-size: 1.2rem; margin-top: 20px;">Is my data safe?</h3>
+        <p>Absolutely. Everything runs on your local machine. Nothing is uploaded to the cloud or shared with anyone.</p>
+        <h3 style="font-size: 1.2rem; margin-top: 20px;">Do I need to know programming?</h3>
+        <p>No! JevHarness was built for everyday users. You just describe what you want, and the harness is created automatically.</p>
+        <h3 style="font-size: 1.2rem; margin-top: 20px;">Can I use it for work?</h3>
+        <p>Yes — many professionals use JevHarness for reports, data entry, and file management.</p>
+
+        <h2>🎯 Use Case Examples</h2>
+        <ul>
+            <li><strong>📁 File organization</strong> — "Sort my desktop into folders by file type."</li>
+            <li><strong>📊 Data summarization</strong> — "Turn this messy spreadsheet into a neat summary."</li>
+            <li><strong>📧 Email drafting</strong> — "Write a professional response email template."</li>
+            <li><strong>🖼️ Image renaming</strong> — "Rename all photos in my vacation folder with dates."</li>
+            <li><strong>📝 Note structuring</strong> — "Organize my meeting notes into action items."</li>
+        </ul>
+        <p>The possibilities are endless — if you can describe it, JevHarness can harness it! 🎉</p>
+
+        <h2>🛟 Need Help?</h2>
+        <p>If you run into any issues, check the <strong>Issues</strong> section on the GitHub page, or email our friendly support team. Most problems are solved by restarting your computer and trying the download again.</p>
+
+        <div class="footer-note">
+            <p>JevHarness - The AI harness that evolves with you.</p>
+            <p>© 2024 JevHarness Team. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

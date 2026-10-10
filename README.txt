@@ -11,7 +11,7 @@ teaching/index.html        Teaching experience
 cv/index.html              Academic background
 assets/johannes-brustle-cv.pdf  Downloadable public CV
 assets/style.css           Appearance and responsive layout
-assets/site.js             Paper filters, search, and two-player domino game
+assets/site.js             Paper filters, search, and two-player shape game
 
 PUBLISH ON GITHUB PAGES
 1. Create a public repository named jbrustle01.github.io, under the jbrustle01 account.
@@ -30,9 +30,12 @@ Edit the relevant HTML file. Publication entries are ordinary HTML article
 elements in research/index.html. Selected papers also appear on index.html.
 The content is present without JavaScript, so search engines can read it.
 The optional JavaScript adds paper search, category filters, and an interactive
-7-by-7 Domineering board on the homepage.
-Loading the page or choosing New game generates a random starting position.
-Reset replays the current position.
+7-by-7 shape-placement game on the homepage, inspired by Domineering.
+Players must place their current piece in its fixed orientation: a domino,
+a three-square bar, or an L-shaped triomino. Each player sees two pieces ahead.
+A fresh seed fixes two to six random blocked squares, with no symmetry
+requirement, and both full piece sequences at the start.
+New game generates a new seed; Reset replays the same board and sequences.
 
 Replace assets/johannes-brustle-cv.pdf to update the downloadable CV.
 

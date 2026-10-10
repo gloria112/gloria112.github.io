@@ -76,129 +76,204 @@ function placeDomineeringDomino(state, anchor) {
 
 function generateDomineeringPosition(rng = Math.random) {
   const size = 7;
-  const target = 2 * (1 + Math.floor(rng() * 3));
-  const seen = new Set();
-  const orbits = [];
-  // Transpose and half-turn symmetry treat the two starting orientations alike.
-  for (let row = 0; row < size; row++) {
-    for (let column = 0; column < size; column++) {
-      const orbit = [...new Set([
-        row * size + column, column * size + row,
-        (size - 1 - row) * size + (size - 1 - column),
-        (size - 1 - column) * size + (size - 1 - row)
-      ])].sort((a, b) => a - b);
-      const key = orbit.join(',');
-      if (orbit.length > 1 && !seen.has(key)) { seen.add(key); orbits.push(orbit); }
-    }
+  const count = 2 + Math.floor(rng() * 5);
+  const cells = Array.from({ length: size * size }, (_, index) => index);
+  // A partial Fisher–Yates shuffle samples distinct blocked squares uniformly.
+  for (let index = 0; index < count; index++) {
+    const selected = index + Math.floor(rng() * (cells.length - index));
+    [cells[index], cells[selected]] = [cells[selected], cells[index]];
   }
-  const blocked = [];
-  while (blocked.length < target) {
-    const candidates = orbits.filter(orbit => orbit.length <= target - blocked.length && !orbit.some(cell => blocked.includes(cell)));
-    if (!candidates.length) break;
-    blocked.push(...candidates[Math.floor(rng() * candidates.length)]);
+  return { size, blocked: cells.slice(0, count).sort((a, b) => a - b) };
+}
+
+// All placements and previews share these fixed, player-specific shapes.
+function shapeOffsets(kind, player) {
+  const shapes = {
+    domino: { blue: [[0,0],[1,0]], red: [[0,0],[0,1]] },
+    straight: { blue: [[0,0],[1,0],[2,0]], red: [[0,0],[0,1],[0,2]] },
+    corner: { blue: [[0,0],[1,0],[1,1]], red: [[0,0],[0,1],[1,0]] }
+  };
+  return (shapes[kind]?.[player] || []).map(offset => [...offset]);
+}
+
+function shapeCells(kind, player, anchor, size) {
+  if (!Number.isInteger(anchor) || anchor < 0 || anchor >= size * size) return null;
+  const offsets = shapeOffsets(kind, player);
+  if (!offsets.length) return null;
+  const row = Math.floor(anchor / size), column = anchor % size;
+  const cells = [];
+  for (const [dr, dc] of offsets) {
+    if (row + dr >= size || column + dc >= size) return null;
+    cells.push((row + dr) * size + column + dc);
   }
-  return { size, blocked: blocked.sort((a, b) => a - b) };
+  return cells;
+}
+
+function generateShapePosition(seed) {
+  const normalizedSeed = Number(seed) >>> 0;
+  const position = generateDomineeringPosition(makeGameRandom(normalizedSeed));
+  const kinds = ['domino', 'straight', 'corner'];
+  const sequences = {};
+  for (const [player, salt] of [['blue', 0x9e3779b9], ['red', 0x243f6a88]]) {
+    const rng = makeGameRandom(normalizedSeed ^ salt);
+    // A 7×7 board cannot use this many pieces; the entire future is fixed now.
+    sequences[player] = Array.from({ length: 32 }, () => kinds[Math.floor(rng() * kinds.length)]);
+  }
+  return { ...position, seed: normalizedSeed, sequences };
+}
+
+function shapePlacementState(position, pieces = [], draws = { blue: 0, red: 0 }, player = 'blue') {
+  const occupied = new Set(position.blocked);
+  pieces.forEach(piece => piece.cells.forEach(cell => occupied.add(cell)));
+  const currentPiece = position.sequences[player][draws[player]];
+  const legalMoves = [];
+  for (let anchor = 0; anchor < position.size * position.size; anchor++) {
+    const cells = shapeCells(currentPiece, player, anchor, position.size);
+    if (cells && cells.every(cell => !occupied.has(cell))) legalMoves.push(anchor);
+  }
+  return {
+    size: position.size, blocked: [...position.blocked], seed: position.seed,
+    sequences: position.sequences, pieces: [...pieces], draws: { ...draws }, player, currentPiece,
+    queues: {
+      blue: position.sequences.blue.slice(draws.blue, draws.blue + 3),
+      red: position.sequences.red.slice(draws.red, draws.red + 3)
+    },
+    legalMoves, winner: legalMoves.length ? null : (player === 'blue' ? 'red' : 'blue')
+  };
+}
+
+function placeShape(state, anchor) {
+  if (state.winner || !state.legalMoves.includes(anchor)) return state;
+  const piece = {
+    anchor, player: state.player, kind: state.currentPiece,
+    cells: shapeCells(state.currentPiece, state.player, anchor, state.size)
+  };
+  const draws = { ...state.draws, [state.player]: state.draws[state.player] + 1 };
+  return shapePlacementState(state, [...state.pieces, piece], draws, state.player === 'blue' ? 'red' : 'blue');
+}
+
+// Trace the boundary of a polyomino so every piece reads as one connected shape.
+function shapeOutline(kind, player, unit, inset, originX, originY) {
+  const offsets = shapeOffsets(kind, player);
+  const occupied = new Set(offsets.map(([row, column]) => `${column},${row}`));
+  const edges = new Map();
+  const add = (x1,y1,x2,y2) => edges.set(`${x1},${y1}`, [x2,y2]);
+  offsets.forEach(([row,column]) => {
+    if (!occupied.has(`${column},${row-1}`)) add(column,row,column+1,row);
+    if (!occupied.has(`${column+1},${row}`)) add(column+1,row,column+1,row+1);
+    if (!occupied.has(`${column},${row+1}`)) add(column+1,row+1,column,row+1);
+    if (!occupied.has(`${column-1},${row}`)) add(column,row+1,column,row);
+  });
+  const first = [...edges.keys()][0].split(',').map(Number);
+  const points = [first];
+  let next = edges.get(first.join(','));
+  while (next.join(',') !== first.join(',')) { points.push(next); next = edges.get(next.join(',')); }
+  const corners = points.filter((point,index) => {
+    const previous = points[(index+points.length-1)%points.length], following = points[(index+1)%points.length];
+    return (point[0]-previous[0])*(following[1]-point[1]) !== (point[1]-previous[1])*(following[0]-point[0]);
+  });
+  const inner = corners.map((point,index) => {
+    const previous = corners[(index+corners.length-1)%corners.length], following = corners[(index+1)%corners.length];
+    const dx1=Math.sign(point[0]-previous[0]),dy1=Math.sign(point[1]-previous[1]);
+    const dx2=Math.sign(following[0]-point[0]),dy2=Math.sign(following[1]-point[1]);
+    return [originX+point[0]*unit-inset*(dy1+dy2),originY+point[1]*unit+inset*(dx1+dx2)];
+  });
+  const radius = Math.min(3, unit*.14);
+  const round = value => Math.round(value*100)/100;
+  let path = '';
+  inner.forEach((point,index) => {
+    const previous=inner[(index+inner.length-1)%inner.length],following=inner[(index+1)%inner.length];
+    const before=[point[0]+Math.sign(previous[0]-point[0])*radius,point[1]+Math.sign(previous[1]-point[1])*radius];
+    const after=[point[0]+Math.sign(following[0]-point[0])*radius,point[1]+Math.sign(following[1]-point[1])*radius];
+    path += `${index ? 'L' : 'M'}${before.map(round).join(' ')}Q${point.map(round).join(' ')} ${after.map(round).join(' ')}`;
+  });
+  return path+'Z';
+}
+
+function shapeDescription(kind, player) {
+  const orientation = player === 'blue' ? 'vertical' : 'horizontal';
+  if (kind === 'domino') return `${orientation} domino`;
+  if (kind === 'straight') return `${orientation} straight triomino`;
+  return player === 'blue' ? 'L triomino, two cells down and one right at the bottom'
+    : 'L triomino, two cells across the top and one down at the left';
 }
 
 function initializeDomineering(widget) {
   if (widget.dataset.gameReady === 'true') return;
-  const status = widget.querySelector('[data-game-status]');
-  const reset = widget.querySelector('[data-game-reset]');
-  const newGame = widget.querySelector('[data-game-new]');
-  const help = widget.querySelector('[data-game-help]');
-  const board = widget.querySelector('[data-domineering-board]');
+  const status=widget.querySelector('[data-game-status]'),reset=widget.querySelector('[data-game-reset]');
+  const newGame=widget.querySelector('[data-game-new]'),help=widget.querySelector('[data-game-help]');
+  const board=widget.querySelector('[data-domineering-board]'),queues=widget.querySelector('[data-piece-queues]');
   if (!board || !status || !reset) return;
-
-  let position;
-  let state;
-  const grid = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  grid.setAttribute('data-domineering-grid', '');
+  let position, state;
+  const grid=document.createElementNS('http://www.w3.org/2000/svg','g');
+  grid.setAttribute('data-domineering-grid','');
   board.appendChild(grid);
-  const playerName = player => player === 'blue' ? 'Blue' : 'Red';
-  const cellPosition = anchor => ({
-    x: (400 - state.size * 32 + 2) / 2 + (anchor % state.size) * 32,
-    y: 6 + Math.floor(anchor / state.size) * 32
-  });
+  const playerName=player=>player==='blue'?'Blue':'Red';
+  const cellPosition=anchor=>({x:(400-state.size*32+2)/2+(anchor%state.size)*32,y:6+Math.floor(anchor/state.size)*32});
+  const pieceColor=player=>player==='blue'?'#99dcee':'#e9a39b';
 
-  function dominoRectangle(anchor, player, preview = false) {
-    const { x, y } = cellPosition(anchor);
-    const width = player === 'blue' ? 30 : 62;
-    const height = player === 'blue' ? 62 : 30;
-    const color = player === 'blue' ? '#99dcee' : '#e9a39b';
-    return `<rect x="${x + 1.5}" y="${y + 1.5}" width="${width - 3}" height="${height - 3}" rx="5" fill="${preview ? color : `url(#dm-${player})`}" fill-opacity="${preview ? '.17' : '.88'}" stroke="${color}" stroke-width="${preview ? '1.8' : '.8'}"/>`;
+  function pieceDrawing(piece,preview=false) {
+    const {x,y}=cellPosition(piece.anchor),color=pieceColor(piece.player);
+    const d=shapeOutline(piece.kind,piece.player,32,2.5,x-1,y-1);
+    return `<path data-placed-shape="${piece.kind}" d="${d}" fill="${preview?color:`url(#dm-${piece.player})`}" fill-opacity="${preview?'.17':'.88'}" stroke="${color}" stroke-width="${preview?'1.8':'.8'}" stroke-linejoin="round"/>`;
+  }
+
+  function renderQueues() {
+    if (!queues) return;
+    queues.innerHTML=['blue','red'].map(player=>`<div class="piece-queue${!state.winner&&state.player===player?' is-active':''}" data-player="${player}"><span class="piece-label">${playerName(player)}</span><div class="piece-slots">${state.queues[player].map((kind,index)=>{
+      const offsets=shapeOffsets(kind,player),width=1+Math.max(...offsets.map(offset=>offset[1])),height=1+Math.max(...offsets.map(offset=>offset[0]));
+      const d=shapeOutline(kind,player,10,.8,(40-width*10)/2,(40-height*10)/2);
+      const label=['Now','Next','Then'][index];
+      return `<div class="piece-slot${index===0?' is-current':''}" data-piece-kind="${kind}"><div class="piece-preview"><svg viewBox="0 0 40 40" role="img" aria-label="${playerName(player)} ${label.toLowerCase()}: ${shapeDescription(kind,player)}"><path d="${d}" fill="${pieceColor(player)}" fill-opacity="${index===0?'.95':'.62'}"/></svg></div><span>${label}</span></div>`;
+    }).join('')}</div></div>`).join('');
   }
 
   function render() {
-    const occupied = new Map();
-    state.dominoes.forEach(domino => domino.cells.forEach(cell => occupied.set(cell, domino.player)));
-    const blocked = new Set(state.blocked);
-    const orientation = state.player === 'blue' ? 'vertical' : 'horizontal';
-    let markup = '<defs><linearGradient id="dm-blue" x2="1" y2="1"><stop stop-color="#aadfea"/><stop offset="1" stop-color="#4a8eac"/></linearGradient><linearGradient id="dm-red" x2="1" y2="1"><stop stop-color="#eeb5ab"/><stop offset="1" stop-color="#a76576"/></linearGradient></defs>';
-    for (let anchor = 0; anchor < state.size * state.size; anchor++) {
-      const { x, y } = cellPosition(anchor);
-      const legal = !state.winner && state.legalMoves.includes(anchor);
-      const unavailable = blocked.has(anchor) ? 'blocked' : occupied.has(anchor) ? `occupied by ${playerName(occupied.get(anchor))}` : `place a ${orientation} domino`;
-      markup += `<g data-domino-cell="${anchor}" role="button" tabindex="${legal ? 0 : -1}" aria-disabled="${!legal}" aria-label="Row ${Math.floor(anchor / state.size) + 1}, column ${anchor % state.size + 1}: ${unavailable}"><rect x="${x}" y="${y}" width="30" height="30" rx="4" fill="${blocked.has(anchor) ? '#14202a' : '#142837'}" fill-opacity="${blocked.has(anchor) ? '.4' : '.68'}" stroke="${blocked.has(anchor) ? '#24313c' : '#416073'}" stroke-width=".7"/>`;
-      if (blocked.has(anchor)) markup += `<path d="M${x+12} ${y+12}l6 6m0-6l-6 6" stroke="#50606e" stroke-width=".8"/>`;
-      else if (!occupied.has(anchor)) markup += `<circle cx="${x+15}" cy="${y+15}" r=".8" fill="#6d8b9c" opacity=".55"/>`;
-      markup += '</g>';
+    const occupied=new Map();
+    state.pieces.forEach(piece=>piece.cells.forEach(cell=>occupied.set(cell,piece.player)));
+    const blocked=new Set(state.blocked);
+    let markup='<defs><linearGradient id="dm-blue" x2="1" y2="1"><stop stop-color="#aadfea"/><stop offset="1" stop-color="#4a8eac"/></linearGradient><linearGradient id="dm-red" x2="1" y2="1"><stop stop-color="#eeb5ab"/><stop offset="1" stop-color="#a76576"/></linearGradient></defs>';
+    for(let anchor=0;anchor<state.size*state.size;anchor++) {
+      const {x,y}=cellPosition(anchor),legal=!state.winner&&state.legalMoves.includes(anchor);
+      const unavailable=blocked.has(anchor)?'blocked':occupied.has(anchor)?`occupied by ${playerName(occupied.get(anchor))}`:`place ${shapeDescription(state.currentPiece,state.player)}`;
+      markup+=`<g data-domino-cell="${anchor}" role="button" tabindex="${legal?0:-1}" aria-disabled="${!legal}" aria-label="Row ${Math.floor(anchor/state.size)+1}, column ${anchor%state.size+1}: ${unavailable}"><rect x="${x}" y="${y}" width="30" height="30" rx="4" fill="${blocked.has(anchor)?'#14202a':'#142837'}" fill-opacity="${blocked.has(anchor)?'.4':'.68'}" stroke="${blocked.has(anchor)?'#24313c':'#416073'}" stroke-width=".7"/>`;
+      if(blocked.has(anchor))markup+=`<path d="M${x+12} ${y+12}l6 6m0-6l-6 6" stroke="#50606e" stroke-width=".8"/>`;
+      else if(!occupied.has(anchor))markup+=`<circle cx="${x+15}" cy="${y+15}" r=".8" fill="#6d8b9c" opacity=".55"/>`;
+      markup+='</g>';
     }
-    markup += '<g pointer-events="none">' + state.dominoes.map(domino => dominoRectangle(domino.anchor, domino.player)).join('') + '</g><g data-domino-preview pointer-events="none"></g>';
-    grid.innerHTML = markup;
-    status.textContent = state.winner ? `${playerName(state.winner)} wins` : `${playerName(state.player)} · ${orientation}`;
-    if (help) help.textContent = state.winner ? 'No legal placement remains. New game to play again.'
-      : `Place a ${orientation} domino. Last player to move wins.`;
+    markup+='<g pointer-events="none">'+state.pieces.map(piece=>pieceDrawing(piece)).join('')+'</g><g data-domino-preview pointer-events="none"></g>';
+    grid.innerHTML=markup;
+    renderQueues();
+    status.textContent=state.winner?`${playerName(state.winner)} wins`:`${playerName(state.player)} to move`;
+    if(help)help.textContent=state.winner?`${playerName(state.player)} cannot fit the required piece.`:'Place your Now piece. You can see two ahead.';
   }
 
-  function placeDomino(anchor, keyboard) {
-    const next = placeDomineeringDomino(state, anchor);
-    if (next === state) return;
-    state = next;
-    render();
-    if (keyboard) {
-      const target = state.winner ? reset : board.querySelector(`[data-domino-cell="${state.legalMoves[0]}"]`);
-      target.focus({ preventScroll: true });
-    }
+  function placePiece(anchor,keyboard) {
+    const next=placeShape(state,anchor);
+    if(next===state)return;
+    state=next;render();
+    if(keyboard)(state.winner?reset:board.querySelector(`[data-domino-cell="${state.legalMoves[0]}"]`)).focus({preventScroll:true});
   }
-
-  function previewDomino(anchor) {
-    const preview = grid.querySelector('[data-domino-preview]');
-    if (preview) preview.innerHTML = !state.winner && state.legalMoves.includes(anchor) ? dominoRectangle(anchor, state.player, true) : '';
+  function previewPiece(anchor) {
+    const preview=grid.querySelector('[data-domino-preview]');
+    if(preview)preview.innerHTML=!state.winner&&state.legalMoves.includes(anchor)?pieceDrawing({anchor,player:state.player,kind:state.currentPiece},true):'';
   }
-
-  widget.dataset.gameReady = 'true';
-  const cellFrom = event => event.target.closest('[data-domino-cell]');
-  board.addEventListener('click', event => {
-    const cell = cellFrom(event);
-    if (cell) placeDomino(Number(cell.dataset.dominoCell), false);
+  widget.dataset.gameReady='true';
+  const cellFrom=event=>event.target.closest('[data-domino-cell]');
+  board.addEventListener('click',event=>{const cell=cellFrom(event);if(cell)placePiece(Number(cell.dataset.dominoCell),false);});
+  board.addEventListener('keydown',event=>{
+    if(event.key!=='Enter'&&event.key!==' '&&event.key!=='Spacebar')return;
+    const cell=cellFrom(event);if(!cell)return;event.preventDefault();
+    if(!event.repeat)placePiece(Number(cell.dataset.dominoCell),true);
   });
-  board.addEventListener('keydown', event => {
-    if (event.key !== 'Enter' && event.key !== ' ' && event.key !== 'Spacebar') return;
-    const cell = cellFrom(event);
-    if (!cell) return;
-    event.preventDefault();
-    if (!event.repeat) placeDomino(Number(cell.dataset.dominoCell), true);
-  });
-  ['pointerover', 'focusin'].forEach(type => board.addEventListener(type, event => {
-    const cell = cellFrom(event);
-    previewDomino(cell ? Number(cell.dataset.dominoCell) : -1);
-  }));
-  ['pointerleave', 'focusout'].forEach(type => board.addEventListener(type, () => previewDomino(-1)));
-
+  ['pointerover','focusin'].forEach(type=>board.addEventListener(type,event=>{const cell=cellFrom(event);previewPiece(cell?Number(cell.dataset.dominoCell):-1);}));
+  ['pointerleave','focusout'].forEach(type=>board.addEventListener(type,()=>previewPiece(-1)));
   function startNewGame() {
-    let seed;
-    if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') seed = crypto.getRandomValues(new Uint32Array(1))[0];
-    else seed = Math.floor(Math.random() * 4294967296);
-    widget.dataset.seed = String(seed);
-    position = generateDomineeringPosition(makeGameRandom(seed));
-    state = domineeringState(position.size, position.blocked);
-    render();
+    const seed=typeof crypto!=='undefined'&&typeof crypto.getRandomValues==='function'?crypto.getRandomValues(new Uint32Array(1))[0]:Math.floor(Math.random()*4294967296);
+    widget.dataset.seed=String(seed);position=generateShapePosition(seed);state=shapePlacementState(position);render();
   }
-  reset.addEventListener('click', () => {
-    state = domineeringState(position.size, position.blocked);
-    render();
-  });
-  if (newGame) newGame.addEventListener('click', startNewGame);
+  reset.addEventListener('click',()=>{state=shapePlacementState(position);render();});
+  if(newGame)newGame.addEventListener('click',startNewGame);
   startNewGame();
 }
 

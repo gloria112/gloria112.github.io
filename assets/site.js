@@ -122,6 +122,25 @@ function placePackingPiece(state, anchor) {
   return packingState(state, [...state.placements, piece]);
 }
 
+// A square can be used whenever some legal placement covers it.
+function resolvePackingAnchor(state, hoveredCell) {
+  if (!state || state.finished || !state.currentPiece || !Number.isInteger(hoveredCell)
+    || hoveredCell < 0 || hoveredCell >= state.size * state.size) return -1;
+  if (state.legalMoves.includes(hoveredCell)) return hoveredCell;
+  const row = Math.floor(hoveredCell / state.size), column = hoveredCell % state.size;
+  const offsets = shapeOffsets(state.currentPiece.kind, state.currentPiece.orientation);
+  let best = -1, distance = Infinity;
+  for (const anchor of state.legalMoves) {
+    const dr = row - Math.floor(anchor / state.size), dc = column - anchor % state.size;
+    if (!offsets.some(offset => offset[0] === dr && offset[1] === dc)) continue;
+    const candidateDistance = dr * dr + dc * dc;
+    if (candidateDistance < distance || (candidateDistance === distance && anchor < best)) {
+      best = anchor; distance = candidateDistance;
+    }
+  }
+  return best;
+}
+
 // Full-cell pointer routing uses the same anchor for preview and placement.
 function packingAnchorAtPoint(size, svgX, svgY) {
   if (!Number.isFinite(svgX) || !Number.isFinite(svgY)) return -1;
@@ -195,7 +214,7 @@ function initializeDomineering(widget) {
   function pieceDrawing(piece,preview=false) {
     const {x,y}=cellPosition(piece.anchor);
     const d=shapeOutline(piece.kind,piece.orientation,32,2.5,x-1,y-1);
-    return `<path data-placed-shape="${piece.kind}" d="${d}" fill="${preview?'#99dcee':'url(#dm-piece)'}" fill-opacity="${preview?'.17':'.88'}" stroke="#99dcee" stroke-width="${preview?'1.8':'.8'}" stroke-linejoin="round"/>`;
+    return `<path data-placed-shape="${piece.kind}" data-placement-anchor="${piece.anchor}" d="${d}" fill="${preview?'#99dcee':'url(#dm-piece)'}" fill-opacity="${preview?'.17':'.88'}" stroke="#99dcee" stroke-width="${preview?'1.8':'.8'}" stroke-linejoin="round"/>`;
   }
 
   function renderQueue() {
@@ -241,12 +260,12 @@ function initializeDomineering(widget) {
     const blocked=new Set(state.blocked);
     let markup='<defs><linearGradient id="dm-piece" x2="1" y2="1"><stop stop-color="#aadfea"/><stop offset="1" stop-color="#4a8eac"/></linearGradient></defs>';
     for(let anchor=0;anchor<state.size*state.size;anchor++) {
-      const {x,y}=cellPosition(anchor),legal=!state.finished&&currentView==='player'&&state.legalMoves.includes(anchor);
-      const unavailable=blocked.has(anchor)?'blocked':occupied.has(anchor)?(currentView==='optimal'?`covered by piece ${occupied.get(anchor)}`:'covered'):state.finished?'empty':`place ${shapeDescription(state.currentPiece.kind,state.currentPiece.orientation)}`;
+      const {x,y}=cellPosition(anchor),legal=currentView==='player'&&resolvePackingAnchor(state,anchor)!==-1;
+      const unavailable=blocked.has(anchor)?'blocked':occupied.has(anchor)?(currentView==='optimal'?`covered by piece ${occupied.get(anchor)}`:'covered'):state.finished?'empty':`place ${shapeDescription(state.currentPiece.kind,state.currentPiece.orientation)} covering this square`;
       markup+=`<g data-domino-cell="${anchor}" role="button" tabindex="${legal?0:-1}" aria-disabled="${!legal}" aria-label="Row ${Math.floor(anchor/state.size)+1}, column ${anchor%state.size+1}: ${unavailable}"><rect pointer-events="none" x="${x}" y="${y}" width="30" height="30" rx="4" fill="${blocked.has(anchor)?'#14202a':'#142837'}" fill-opacity="${blocked.has(anchor)?'.4':'.68'}" stroke="${blocked.has(anchor)?'#24313c':'#416073'}" stroke-width=".7"/>`;
       if(blocked.has(anchor))markup+=`<path pointer-events="none" d="M${x+12} ${y+12}l6 6m0-6l-6 6" stroke="#50606e" stroke-width=".8"/>`;
       else if(!occupied.has(anchor))markup+=`<circle pointer-events="none" cx="${x+15}" cy="${y+15}" r=".8" fill="#6d8b9c" opacity=".55"/>`;
-      markup+=`<rect class="packing-cell-hit" x="${x-1}" y="${y-1}" width="32" height="32" fill="transparent" pointer-events="all"/></g>`;
+      markup+=`<rect class="packing-cell-hit" x="${x-1}" y="${y-1}" width="32" height="32" fill="transparent" stroke-width="0" pointer-events="all"/></g>`;
     }
     markup+='<g pointer-events="none">'+placements.map(piece=>pieceDrawing(piece)).join('')+'</g><g data-domino-preview pointer-events="none"></g>';
     if(currentView==='optimal')markup+='<g data-solution-order pointer-events="none" aria-hidden="true">'+placements.map((piece,index)=>{const {x,y}=cellPosition(piece.anchor);return `<text x="${x+15}" y="${y+18}" text-anchor="middle" fill="#102430" font-family="var(--mono,monospace)" font-size="9" font-weight="600">${index+1}</text>`;}).join('')+'</g>';
@@ -255,8 +274,10 @@ function initializeDomineering(widget) {
     renderQueue();updateSummary();refreshPointerPreview();
   }
 
-  function placePiece(anchor,keyboard) {
+  function placePiece(hoveredCell,keyboard) {
     if(!state||preparing||currentView!=='player')return;
+    const anchor=resolvePackingAnchor(state,hoveredCell);
+    if(anchor===-1)return;
     const next=placePackingPiece(state,anchor);
     if(next===state)return;
     state=next;render();
@@ -265,9 +286,10 @@ function initializeDomineering(widget) {
       target.focus({preventScroll:true});
     }
   }
-  function previewPiece(anchor) {
+  function previewPiece(hoveredCell) {
     const preview=grid.querySelector('[data-domino-preview]');
-    if(preview)preview.innerHTML=state&&!preparing&&!state.finished&&currentView==='player'&&state.legalMoves.includes(anchor)?pieceDrawing({anchor,...state.currentPiece},true):'';
+    const anchor=!preparing&&currentView==='player'?resolvePackingAnchor(state,hoveredCell):-1;
+    if(preview)preview.innerHTML=anchor!==-1?pieceDrawing({anchor,...state.currentPiece},true):'';
   }
 
   function pointerAnchor(event) {
@@ -378,6 +400,8 @@ function initializeDomineering(widget) {
     if(play)play.toggleAttribute('hidden',false);
     const seed=typeof crypto!=='undefined'&&typeof crypto.getRandomValues==='function'?crypto.getRandomValues(new Uint32Array(1))[0]:Math.floor(Math.random()*4294967296);
     widget.dataset.seed=String(seed);preparePuzzle(seed,selectedSize);
+    const reducedMotion=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    widget.scrollIntoView?.({block:'start',behavior:reducedMotion?'auto':'smooth'});
   }
   sizeButtons.forEach(button=>button.addEventListener('click',()=>{
     const size=Number(button.dataset.gameSize);

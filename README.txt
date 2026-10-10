@@ -39,6 +39,8 @@ Every piece covers five squares. All connected five-square shapes are
 possible, including their distinct rotations and reflections.
 Place the current piece without rotating or skipping it. Only the next piece
 is visible. The game ends when the current piece has no legal placement.
+Hover any square that a legal placement could cover; clicking places the
+exact preview. Focus and Enter provide the same choices with the keyboard.
 A fresh seed fixes random blocked squares, with no symmetry requirement,
 and the full sequence of pieces and orientations. Blocked-square ranges
 scale with the board: 2–4 on 7-by-7, 4–6 on 9-by-9, 6–9 on 11-by-11,

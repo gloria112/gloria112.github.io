@@ -13,7 +13,7 @@
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
   <link rel="stylesheet" href="../assets/style.css">
   <script src="../assets/packing-pieces.js?v=packing-sizes-8" defer></script>
-  <script src="../assets/site.js?v=packing-sizes-8" defer></script>
+  <script src="../assets/site.js?v=packing-sizes-10" defer></script>
   <style id="packing-game-style">
     .game-section{padding:52px 0 60px}
     .no-js .game-section{display:none}
@@ -46,7 +46,7 @@
     .domineering-board{display:block;width:100%;height:auto;overflow:visible}
     .domineering-board [data-domino-cell]{cursor:pointer;outline:none}
     .domineering-board [data-domino-cell][aria-disabled="true"]{cursor:default}
-    .domineering-board [data-domino-cell]:focus-visible rect{stroke:#e2f5fc;stroke-width:1.5}
+    .domineering-board [data-domino-cell]:focus-visible rect:not(.packing-cell-hit){stroke:#e2f5fc;stroke-width:1.5}
     .game-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:16px auto 0;font-family:var(--mono,monospace);font-size:11px;letter-spacing:.02em;color:#a8c2d2}
     .game-actions{display:flex;gap:8px;align-items:center}
     .game-controls button{font:inherit;letter-spacing:inherit;color:#a8c2d2;background:transparent;border:1px solid #3c5669;border-radius:3px;padding:6px 10px;cursor:pointer;line-height:1.3}
@@ -87,7 +87,7 @@
       <div class="game-layout">
       <svg xmlns="http://www.w3.org/2000/svg" id="domineering-board" data-domineering-board class="domineering-board" viewBox="-16 0 432 432" fill="none" role="group" aria-labelledby="dm-title" aria-describedby="dm-desc">
         <title id="dm-title">Single-player shape game</title>
-        <desc id="dm-desc">Cover as many squares as you can. Choose a board size, then place your current piece on empty squares. Every piece covers five squares. You can see the next piece. Shapes and orientations are fixed by the starting seed, and you cannot skip pieces. Hover or focus a square to preview placement, then click or press Enter. The game ends when the current piece cannot fit. Compare your final layout with the optimal placement for the same board and sequence. Your score is the percentage of the optimal number of squares that you covered. New game lets you choose a size and a fresh seed; Reset replays the same start.</desc>
+        <desc id="dm-desc">Cover as many squares as you can. Choose a board size, then place your current piece on empty squares. Every piece covers five squares. You can see the next piece. Shapes and orientations are fixed by the starting seed, and you cannot skip pieces. Hover or focus any empty square that the piece could cover to preview a valid placement, then click or press Enter to place the preview. The game ends when the current piece cannot fit. Compare your final layout with the optimal placement for the same board and sequence. Your score is the percentage of the optimal number of squares that you covered. New game lets you choose a size and a fresh seed; Reset replays the same start.</desc>
       </svg>
       <div class="game-sidebar">
         <div class="piece-queues" data-piece-queues aria-label="Upcoming pieces"></div>

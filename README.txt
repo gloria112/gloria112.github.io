@@ -38,9 +38,10 @@ Choose a 5-by-5, 7-by-7, or 9-by-9 board before starting; 7-by-7 is the default.
 Every piece covers four squares. All connected four-square shapes are
 possible, including their distinct rotations and reflections.
 Place the current piece without rotating it. The next three pieces are visible
-alongside the current piece. Click the Hold slot or press H while playing to
-store the current piece and draw the next, or swap it with the held piece.
-Holding is available once per placement; placing a piece unlocks it again.
+alongside the current piece. Keep up to two pieces on hold. Click a hold slot,
+or press H for slot 1 or J for slot 2, to store the current piece and draw the
+next, or swap it with the piece in that slot. One hold or swap is available
+per placement across both slots; placing a piece unlocks both slots again.
 Each placed piece immediately shows its original arrival number, so pieces
 can be matched to the optimal layout even when holding changes their order.
 The game ends only when the current piece cannot fit and no permitted hold
@@ -55,7 +56,7 @@ regions smaller than a piece. Each puzzle is generated with a packing that
 reaches the free-area bound, then its pieces are shuffled into arrival order.
 Generation favors varied families and limits long runs of the same family.
 New game returns to the size picker; Start game generates a fresh seed.
-Reset replays the same board and sequence with an empty hold slot.
+Reset replays the same board and sequence with both hold slots empty.
 At the end, compare your layout with the Optimal offline solution for the
 same board, arrival sequence, and hold rules. The score is 100 times your covered squares
 divided by the optimal covered squares. The optimal

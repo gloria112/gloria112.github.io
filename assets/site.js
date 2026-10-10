@@ -100,10 +100,10 @@ function packingState(position, placements = [], progress = {}) {
   // Stream identity is independent of placement order when a piece is held.
   const currentIndex = progress.currentIndex ?? index;
   const nextIndex = progress.nextIndex ?? currentIndex + 1;
-  const heldIndex = progress.heldIndex ?? null;
+  const heldIndices = [progress.heldIndices?.[0] ?? null, progress.heldIndices?.[1] ?? null];
   const holdUsed = progress.holdUsed ?? false;
   const currentPiece = position.sequence[currentIndex];
-  const heldPiece = heldIndex === null ? null : position.sequence[heldIndex];
+  const heldPieces = heldIndices.map(heldIndex => heldIndex === null ? null : position.sequence[heldIndex]);
   function movesFor(piece) {
     const moves = [];
     if (!piece) return moves;
@@ -114,13 +114,16 @@ function packingState(position, placements = [], progress = {}) {
     return moves;
   }
   const legalMoves = movesFor(currentPiece);
-  const replacement = heldPiece || position.sequence[nextIndex];
-  const canHold = !holdUsed && Boolean(replacement);
-  const holdCanRescue = canHold && movesFor(replacement).length > 0;
+  const replacements = heldPieces.map(piece => piece || position.sequence[nextIndex]);
+  const canHoldSlots = replacements.map(piece => !holdUsed && Boolean(piece));
+  const holdRescueSlots = replacements.map((piece,slot) => canHoldSlots[slot] && movesFor(piece).length > 0);
+  const canHold = canHoldSlots.some(Boolean);
+  const rescueSlot = holdRescueSlots.findIndex(Boolean);
+  const holdCanRescue = rescueSlot !== -1;
   return {
     size: position.size, blocked: [...position.blocked], seed: position.seed, sequence: position.sequence,
-    placements: [...placements], index, currentIndex, nextIndex, heldIndex, holdUsed,
-    currentPiece, heldPiece, canHold, holdCanRescue,
+    placements: [...placements], index, currentIndex, nextIndex, heldIndices, holdUsed,
+    currentPiece, heldPieces, canHoldSlots, holdRescueSlots, rescueSlot, canHold, holdCanRescue,
     queue: [currentPiece, ...position.sequence.slice(nextIndex, nextIndex + 3)].filter(Boolean),
     legalMoves, coveredTiles: placements.reduce((sum,piece) => sum + piece.cells.length, 0),
     finished: legalMoves.length === 0 && !holdCanRescue
@@ -135,17 +138,19 @@ function placePackingPiece(state, anchor) {
   };
   return packingState(state, [...state.placements, piece], {
     currentIndex: state.nextIndex, nextIndex: state.nextIndex + 1,
-    heldIndex: state.heldIndex, holdUsed: false
+    heldIndices: state.heldIndices, holdUsed: false
   });
 }
 
-function holdPackingPiece(state) {
-  if (state.finished || !state.canHold) return state;
-  const empty = state.heldIndex === null;
+function holdPackingPiece(state, slot = 0) {
+  if (!Number.isInteger(slot) || slot < 0 || slot > 1 || state.finished || !state.canHoldSlots[slot]) return state;
+  const empty = state.heldIndices[slot] === null;
+  const heldIndices = [...state.heldIndices];
+  heldIndices[slot] = state.currentIndex;
   return packingState(state, state.placements, {
-    currentIndex: empty ? state.nextIndex : state.heldIndex,
+    currentIndex: empty ? state.nextIndex : state.heldIndices[slot],
     nextIndex: state.nextIndex + (empty ? 1 : 0),
-    heldIndex: state.currentIndex, holdUsed: true
+    heldIndices, holdUsed: true
   });
 }
 
@@ -228,8 +233,8 @@ function initializeDomineering(widget) {
   const viewButtons=[...widget.querySelectorAll('[data-game-view]')];
   const setup=widget.querySelector('[data-game-setup]'),play=widget.querySelector('[data-game-play]'),start=widget.querySelector('[data-game-start]');
   const sizeButtons=[...widget.querySelectorAll('[data-game-size]')];
-  const holdPanel=widget.querySelector('[data-hold-panel]'),holdButton=widget.querySelector('[data-game-hold]');
-  const holdPreview=widget.querySelector('[data-hold-preview]'),holdAction=widget.querySelector('[data-hold-action]'),holdHint=widget.querySelector('[data-hold-hint]');
+  const holdPanel=widget.querySelector('[data-hold-panel]'),holdHint=widget.querySelector('[data-hold-hint]');
+  const holdButtons=[0,1].map(slot=>widget.querySelector(`[data-game-hold="${slot}"]`));
   if (!board || !status || !reset) return;
   let position=null, state=null, solution=null, solverError=false, worker=null, gameToken=0, currentView='player', preparing=false, selectedSize=7, lastPointer=null, pointerInGame=false;
   const sourceURL=document.currentScript?.src || new URL('assets/site.js',document.baseURI).href;
@@ -265,15 +270,22 @@ function initializeDomineering(widget) {
 
   function renderHold() {
     if(holdPanel)holdPanel.toggleAttribute('hidden',state.finished);
-    if(!holdButton)return;
-    holdButton.disabled=state.finished||!state.canHold;
-    if(holdAction)holdAction.textContent=state.heldPiece?'Swap':'Hold';
-    const heldDescription=state.heldPiece?shapeDescription(state.heldPiece.kind,state.heldPiece.orientation):'';
-    if(holdPreview)holdPreview.innerHTML=state.heldPiece?`<svg viewBox="0 0 40 40" data-held-kind="${state.heldPiece.kind}" data-held-orientation="${state.heldPiece.orientation}"><path d="${pieceIconPath(state.heldPiece)}" fill="#99dcee"/></svg>`:'+';
-    holdButton.setAttribute('aria-label',state.holdUsed
-      ?`Hold unavailable until you place a piece${heldDescription?`. Held: ${heldDescription}`:''}`
-      :state.heldPiece?`Swap current piece with held ${heldDescription}`:'Hold current piece and draw the next piece');
-    if(holdHint)holdHint.textContent=state.holdUsed?'Place a piece to hold again.':state.legalMoves.length===0&&state.holdCanRescue?(state.heldPiece?'Swap to continue.':'Use Hold to continue.'):'Once per placement.';
+    holdButtons.forEach((button,slot)=>{
+      if(!button)return;
+      const piece=state.heldPieces[slot],preview=button.querySelector('[data-hold-preview]'),action=button.querySelector('[data-hold-action]');
+      button.disabled=state.finished||!state.canHoldSlots[slot];
+      if(action)action.textContent=`${piece?'Swap':'Hold'} ${slot+1}`;
+      const description=piece?shapeDescription(piece.kind,piece.orientation):'';
+      if(preview)preview.innerHTML=piece?`<svg viewBox="0 0 40 40" data-held-kind="${piece.kind}" data-held-orientation="${piece.orientation}"><path d="${pieceIconPath(piece)}" fill="#99dcee"/></svg>`:'+';
+      button.setAttribute('aria-label',`Hold slot ${slot+1}: ${state.holdUsed
+        ?`unavailable until you place a piece${description?`. Held: ${description}`:''}`
+        :piece?`swap current piece with held ${description}`:'store current piece and draw the next piece'}`);
+    });
+    if(holdHint)holdHint.textContent=state.holdUsed?'Place a piece to hold again.':state.legalMoves.length===0&&state.holdCanRescue?rescueMessage():'One hold or swap per placement.';
+  }
+
+  function rescueMessage() {
+    return `${state.heldPieces[state.rescueSlot]?'Swap with':'Use Hold'} slot ${state.rescueSlot+1} to continue.`;
   }
 
   function updateSummary() {
@@ -295,7 +307,7 @@ function initializeDomineering(widget) {
       button.setAttribute('aria-pressed',String(selected));
       button.disabled=!state.finished||(button.dataset.gameView==='optimal'&&!solution?.exact);
     });
-    status.textContent=currentView==='optimal'&&solution?.exact?`Optimal offline solution: ${solution.optimalTiles} squares`:!state.finished&&state.legalMoves.length===0&&state.holdCanRescue?`${state.coveredTiles} squares covered · ${state.heldPiece?'Swap':'Use Hold'} to continue.`:`${state.coveredTiles} squares covered`;
+    status.textContent=currentView==='optimal'&&solution?.exact?`Optimal offline solution: ${solution.optimalTiles} squares`:!state.finished&&state.legalMoves.length===0&&state.holdCanRescue?`${state.coveredTiles} squares covered · ${rescueMessage()}`:`${state.coveredTiles} squares covered`;
   }
 
   function render() {
@@ -323,7 +335,7 @@ function initializeDomineering(widget) {
 
   function focusNextAction() {
     const target=state.finished?(viewButtons.find(button=>button.dataset.gameView==='player')||newGame||reset)
-      :state.legalMoves.length?board.querySelector(`[data-domino-cell="${state.legalMoves[0]}"]`):holdButton;
+      :state.legalMoves.length?board.querySelector(`[data-domino-cell="${state.legalMoves[0]}"]`):holdButtons[state.rescueSlot];
     target?.focus({preventScroll:true});
   }
 
@@ -336,9 +348,9 @@ function initializeDomineering(widget) {
     state=next;render();
     if(keyboard)focusNextAction();
   }
-  function holdPiece(keyboard) {
+  function holdPiece(slot,keyboard) {
     if(!state||preparing||currentView!=='player')return;
-    const next=holdPackingPiece(state);
+    const next=holdPackingPiece(state,slot);
     if(next===state)return;
     state=next;render();
     if(keyboard)focusNextAction();
@@ -373,8 +385,12 @@ function initializeDomineering(widget) {
     if(score){score.textContent='';score.toggleAttribute('hidden',true);}
     if(results)results.toggleAttribute('hidden',true);
     if(holdPanel)holdPanel.toggleAttribute('hidden',true);
-    if(holdButton)holdButton.disabled=true;
-    if(holdPreview)holdPreview.innerHTML='+';
+    holdButtons.forEach(button=>{
+      if(!button)return;
+      button.disabled=true;
+      const preview=button.querySelector('[data-hold-preview]');
+      if(preview)preview.innerHTML='+';
+    });
     viewButtons.forEach(button=>{button.disabled=true;button.setAttribute('aria-pressed',String(button.dataset.gameView==='player'));});
     reset.disabled=true;
     board.setAttribute('aria-busy',String(busy));
@@ -443,15 +459,16 @@ function initializeDomineering(widget) {
   board.addEventListener('focusout',()=>{previewPiece(-1);refreshPointerPreview();});
   widget.addEventListener('pointerenter',()=>{pointerInGame=true;});
   widget.addEventListener('pointerleave',()=>{pointerInGame=false;});
-  if(holdButton)holdButton.addEventListener('click',event=>holdPiece(event.detail===0));
+  holdButtons.forEach((button,slot)=>button?.addEventListener('click',event=>holdPiece(slot,event.detail===0)));
   document.addEventListener('keydown',event=>{
-    if(event.defaultPrevented||event.repeat||event.ctrlKey||event.metaKey||event.altKey||event.shiftKey||event.key?.toLowerCase()!=='h')return;
-    if(!state||preparing||state.finished||!state.canHold||currentView!=='player')return;
+    if(event.defaultPrevented||event.repeat||event.ctrlKey||event.metaKey||event.altKey||event.shiftKey)return;
+    const slot=['h','j'].indexOf(event.key?.toLowerCase());
+    if(slot===-1||!state||preparing||state.finished||!state.canHoldSlots[slot]||currentView!=='player')return;
     const target=event.target;
     if(target?.isContentEditable||target?.closest?.('input, textarea, select, [contenteditable], [role="textbox"]'))return;
     const focusedInGame=widget.contains(document.activeElement)||widget.contains(target);
     if(!pointerInGame&&!focusedInGame)return;
-    event.preventDefault();holdPiece(focusedInGame);
+    event.preventDefault();holdPiece(slot,focusedInGame);
   });
 
   function updateSizeChoice() {

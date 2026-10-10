@@ -12,8 +12,8 @@
   <link rel="canonical" href="https://jbrustle01.github.io/teaching/">
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
   <link rel="stylesheet" href="../assets/style.css">
-  <script src="../assets/packing-pieces.js?v=hold-14" defer></script>
-  <script src="../assets/site.js?v=hold-14" defer></script>
+  <script src="../assets/packing-pieces.js?v=hold-two-15" defer></script>
+  <script src="../assets/site.js?v=hold-two-15" defer></script>
   <style id="packing-game-style">
     .game-section{padding:52px 0 60px}
     .no-js .game-section{display:none}
@@ -44,6 +44,7 @@
     .piece-slot.is-current .piece-preview{border-color:currentColor;background:#18304480}
     .piece-slot svg{display:block;width:100%;height:100%;overflow:visible}
     .hold-panel{border-top:1px solid #304454;padding-top:16px;font-family:var(--mono,monospace)}
+    .hold-slots{display:grid;gap:8px}
     .game-hold{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:10px;border:1px solid #668fa4;border-radius:3px;background:#142b3c;color:#c2e3ee;cursor:pointer;text-align:center}
     .game-hold:hover:not(:disabled),.game-hold:focus-visible{border-color:#c4e7f2;background:#1a3548;color:#e2f5fc}
     .game-hold:disabled{opacity:.45;cursor:default}
@@ -62,7 +63,7 @@
     .game-controls button:hover,.game-controls button:focus-visible{color:#e2f5fc;border-color:#a4cbdc}
     .game-help{font-family:var(--display);font-size:22px;letter-spacing:-.02em;text-align:left;color:#c9dde7;margin:0 0 28px;line-height:1.4}
     @media(max-width:600px){.game-section{padding:36px 0 42px}.game-setup{padding:20px}.game-sizes{gap:10px}.game-sizes button{min-height:66px;padding:12px 4px;font-size:22px}.game-layout{display:flex;flex-direction:column;gap:22px}.domineering-board{max-width:430px}.game-sidebar{width:100%;flex-direction:row;align-items:center;gap:20px}.piece-queues{width:100%;max-width:430px}.piece-slots{grid-template-columns:repeat(4,minmax(0,1fr))}.game-score{width:130px}.game-results{width:142px}.game-score strong{font-size:34px}.game-help{font-size:20px;margin-bottom:20px}.game-controls{font-size:10px;margin-top:24px}.game-controls button{padding:7px 9px}}
-    @media(max-width:600px){.game-sidebar{flex-wrap:wrap;gap:16px;justify-content:center}.hold-panel{display:flex;align-items:center;gap:16px;width:100%;max-width:430px;border-top:0;padding-top:0}.game-hold{width:142px;flex-shrink:0;padding:6px 10px}.hold-preview{width:40px;height:40px}.hold-label{flex-direction:row;gap:8px}.hold-hint{margin:0}}
+    @media(max-width:600px){.game-sidebar{flex-wrap:wrap;gap:16px;justify-content:center}.hold-panel{width:100%;max-width:430px;border-top:0;padding-top:0}.hold-slots{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.game-hold{padding:6px 10px;gap:6px}.hold-preview{width:40px;height:40px}.hold-label{flex-direction:row;gap:6px}.hold-hint{margin:8px 0 0;text-align:center}}
     @media print{.game-section{display:none}}
   </style>
 </head>
@@ -96,16 +97,22 @@
       <div class="game-layout">
       <svg xmlns="http://www.w3.org/2000/svg" id="domineering-board" data-domineering-board class="domineering-board" viewBox="80 0 240 240" fill="none" role="group" aria-labelledby="dm-title" aria-describedby="dm-desc">
         <title id="dm-title">Single-player shape game</title>
-        <desc id="dm-desc">Cover as many squares as you can. Choose a board size, then place your current piece on empty squares. Every piece covers four squares. You can see the next three pieces. Shapes and orientations are fixed by the starting seed. Hover or focus any empty square that the piece could cover to preview a valid placement, then click or press Enter to place the preview. Click Hold or press H while playing to store the current piece, or swap it with the held piece. You can hold once per placement. Placed pieces show their original sequence numbers, matching the optimal offline solution. The game ends when the current piece cannot fit and holding cannot provide a playable piece. Compare your final layout with the optimal offline solution for the same board, sequence, and hold rules. Your score is the percentage of the optimal number of squares that you covered. New game lets you choose a size and a fresh seed; Reset replays the same start with an empty hold slot.</desc>
+        <desc id="dm-desc">Cover as many squares as you can. Choose a board size, then place your current piece on empty squares. Every piece covers four squares. You can see the next three pieces. Shapes and orientations are fixed by the starting seed. Hover or focus any empty square that the piece could cover to preview a valid placement, then click or press Enter to place the preview. Keep up to two pieces on hold. Click a hold slot, or press H for slot 1 or J for slot 2, to store the current piece or swap it with that slot. You can hold or swap once per placement across both slots. Placed pieces show their original sequence numbers, matching the optimal offline solution. The game ends when the current piece cannot fit and neither hold slot can provide a playable piece through a permitted hold or swap. Compare your final layout with the optimal offline solution for the same board, sequence, and hold rules. Your score is the percentage of the optimal number of squares that you covered. New game lets you choose a size and a fresh seed; Reset replays the same start with both hold slots empty.</desc>
       </svg>
       <div class="game-sidebar">
         <div class="piece-queues" data-piece-queues aria-label="Upcoming pieces"></div>
         <div class="hold-panel" data-hold-panel hidden>
-          <button type="button" class="game-hold" data-game-hold aria-label="Hold current piece" aria-keyshortcuts="H" aria-describedby="game-hold-hint" disabled>
-            <span class="hold-preview" data-hold-preview aria-hidden="true">+</span>
-            <span class="hold-label"><span data-hold-action>Hold</span><kbd>H</kbd></span>
-          </button>
-          <p class="hold-hint" id="game-hold-hint" data-hold-hint>Once per placement.</p>
+          <div class="hold-slots">
+            <button type="button" class="game-hold" data-game-hold="0" aria-label="Hold current piece in slot 1" aria-keyshortcuts="H" aria-describedby="game-hold-hint" disabled>
+              <span class="hold-preview" data-hold-preview aria-hidden="true">+</span>
+              <span class="hold-label"><span data-hold-action>Hold 1</span><kbd>H</kbd></span>
+            </button>
+            <button type="button" class="game-hold" data-game-hold="1" aria-label="Hold current piece in slot 2" aria-keyshortcuts="J" aria-describedby="game-hold-hint" disabled>
+              <span class="hold-preview" data-hold-preview aria-hidden="true">+</span>
+              <span class="hold-label"><span data-hold-action>Hold 2</span><kbd>J</kbd></span>
+            </button>
+          </div>
+          <p class="hold-hint" id="game-hold-hint" data-hold-hint>One hold or swap per placement.</p>
         </div>
         <div class="game-score" data-game-score aria-live="polite" hidden></div>
         <div class="game-results" data-game-results hidden>

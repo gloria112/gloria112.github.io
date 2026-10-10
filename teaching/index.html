@@ -12,8 +12,9 @@
   <link rel="canonical" href="https://jbrustle01.github.io/teaching/">
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
   <link rel="stylesheet" href="../assets/style.css">
-  <script src="../assets/packing-pieces.js?v=hold-two-15" defer></script>
-  <script src="../assets/site.js?v=hold-two-15" defer></script>
+  <script src="../assets/packing-pieces.js?v=leaderboard-16" defer></script>
+  <script src="../assets/leaderboard.js?v=leaderboard-16" defer></script>
+  <script src="../assets/site.js?v=leaderboard-16" defer></script>
   <style id="packing-game-style">
     .game-section{padding:52px 0 60px}
     .no-js .game-section{display:none}
@@ -64,6 +65,17 @@
     .game-help{font-family:var(--display);font-size:22px;letter-spacing:-.02em;text-align:left;color:#c9dde7;margin:0 0 28px;line-height:1.4}
     @media(max-width:600px){.game-section{padding:36px 0 42px}.game-setup{padding:20px}.game-sizes{gap:10px}.game-sizes button{min-height:66px;padding:12px 4px;font-size:22px}.game-layout{display:flex;flex-direction:column;gap:22px}.domineering-board{max-width:430px}.game-sidebar{width:100%;flex-direction:row;align-items:center;gap:20px}.piece-queues{width:100%;max-width:430px}.piece-slots{grid-template-columns:repeat(4,minmax(0,1fr))}.game-score{width:130px}.game-results{width:142px}.game-score strong{font-size:34px}.game-help{font-size:20px;margin-bottom:20px}.game-controls{font-size:10px;margin-top:24px}.game-controls button{padding:7px 9px}}
     @media(max-width:600px){.game-sidebar{flex-wrap:wrap;gap:16px;justify-content:center}.hold-panel{width:100%;max-width:430px;border-top:0;padding-top:0}.hold-slots{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.game-hold{padding:6px 10px;gap:6px}.hold-preview{width:40px;height:40px}.hold-label{flex-direction:row;gap:6px}.hold-hint{margin:8px 0 0;text-align:center}}
+    .leaderboard-panel{margin-top:34px;padding-top:25px;border-top:1px solid #304454;font-family:var(--mono,monospace)}
+    .leaderboard-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}
+    .leaderboard-heading h2{margin:0;color:#c9dde7;font-family:var(--display);font-size:22px;font-weight:400;letter-spacing:-.02em}
+    .leaderboard-sizes{display:flex;gap:6px}.leaderboard-sizes button,.leaderboard-submit button{font:11px var(--mono,monospace);border:1px solid #3c5669;border-radius:3px;padding:8px 12px;color:#a8c2d2;background:transparent;cursor:pointer}
+    .leaderboard-sizes button[aria-pressed="true"],.leaderboard-submit button{color:#e1f5fc;background:#1a3548;border-color:#8ac5d8}
+    .leaderboard-sizes button:hover,.leaderboard-sizes button:focus-visible,.leaderboard-submit button:hover,.leaderboard-submit button:focus-visible{border-color:#d0ebf5;color:#e2f5fc}
+    .leaderboard-note{color:#8da7b6;font-size:10px;line-height:1.7;margin:10px 0 0}.leaderboard-status,.leaderboard-submit-status{color:#a8c2d2;font-size:11px;line-height:1.7;margin:18px 0 0}.leaderboard-submit-status:empty{display:none}
+    .leaderboard-list{list-style:none;margin:12px 0 0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px}.leaderboard-list:empty{display:none}
+    .leaderboard-entry{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #243847;font-size:12px}.leaderboard-rank{color:#7f9dab}.leaderboard-name{color:#c9dde7;overflow-wrap:anywhere}.leaderboard-score{color:#b5dfed}
+    .leaderboard-submit{margin-top:22px;padding:18px;border:1px solid #3c5669;border-radius:3px;background:#12253680}.leaderboard-submit label{display:block;margin-bottom:10px;font-size:11px;color:#c9dde7}.leaderboard-submit label span{color:#8da7b6}.leaderboard-submit-controls{display:flex;gap:10px}.leaderboard-submit select{min-width:0;flex:1;padding:10px;border:1px solid #54788d;border-radius:3px;background:#0e1c2b;color:#c9dde7;font:12px var(--mono,monospace)}.leaderboard-submit button:disabled{opacity:.5;cursor:default}
+    @media(max-width:600px){.leaderboard-heading{gap:10px}.leaderboard-heading h2{font-size:20px}.leaderboard-sizes button{padding:8px 9px}.leaderboard-list{grid-template-columns:1fr}.leaderboard-submit{padding:14px}.leaderboard-submit-controls{gap:8px}.leaderboard-submit button{padding:8px 10px}}
     @media print{.game-section{display:none}}
   </style>
 </head>
@@ -82,7 +94,7 @@
 <article class="cv-entry"><p class="date">January 2021 – April 2021</p><h3>Further Quantitative Methods</h3><p>London School of Economics</p></article>
 <article class="cv-entry"><p class="date">September 2017 – April 2018</p><h3>Algorithm Design</h3><p>McGill University</p></article></div></section>
 <section class="section game-section" id="play" aria-labelledby="game-instructions">
-    <div class="domineering-field" data-domineering role="group" aria-label="Single-player shape game">
+    <div class="domineering-field" data-domineering data-leaderboard-api="https://jbrustle-puzzle-leaderboard.jbrustle01.workers.dev" role="group" aria-label="Single-player shape game">
       <p class="game-help" id="game-instructions" data-game-help>Cover as many squares as you can.</p>
       <div class="game-setup" data-game-setup>
         <p class="game-setup-label" id="game-size-label">Choose your board</p>
@@ -123,6 +135,23 @@
       </div>
       <div class="game-controls"><span data-game-status aria-live="polite">0 squares covered</span><span class="game-actions"><button type="button" data-game-new>New game</button><button type="button" data-game-reset>Reset</button></span></div>
       </div>
+
+      <section class="leaderboard-panel" data-leaderboard-panel aria-labelledby="leaderboard-title">
+        <div class="leaderboard-heading"><h2 id="leaderboard-title">Leaderboard</h2><div class="leaderboard-sizes" role="group" aria-label="Leaderboard board size">
+          <button type="button" data-leaderboard-size="5" aria-pressed="false">5 × 5</button>
+          <button type="button" data-leaderboard-size="7" aria-pressed="true">7 × 7</button>
+          <button type="button" data-leaderboard-size="9" aria-pressed="false">9 × 9</button>
+        </div></div>
+        <p class="leaderboard-note">Top 10 for each board. Newer scores win ties.</p>
+        <p class="leaderboard-status" data-leaderboard-status aria-live="polite">Loading leaderboard…</p>
+        <ol class="leaderboard-list" data-leaderboard-list aria-label="Top scores"></ol>
+        <div class="leaderboard-submit" data-leaderboard-submit-panel hidden>
+          <label for="leaderboard-name">Nickname <span>(optional)</span></label>
+          <div class="leaderboard-submit-controls"><select id="leaderboard-name" data-leaderboard-name aria-describedby="nickname-help"><option value="">Anonymous</option><option>Aurora Owl</option><option>Blue Comet</option><option>Calm Cedar</option><option>Copper Fox</option><option>Dawn Finch</option><option>Dune Falcon</option><option>Emerald Pine</option><option>Golden Heron</option><option>Indigo Lynx</option><option>Ivory Crane</option><option>Jade Otter</option><option>Lunar Moth</option><option>Maple Wren</option><option>Misty Raven</option><option>Nova Badger</option><option>Ocean Kite</option><option>Opal Robin</option><option>Polar Seal</option><option>Quiet Hawk</option><option>Silver Fern</option><option>Solar Swift</option><option>Starling Vale</option><option>Velvet Birch</option><option>Willow Lark</option></select><button type="button" data-leaderboard-submit>Add my score</button></div>
+          <p class="leaderboard-note" id="nickname-help">Choose an approved nickname to keep the leaderboard welcoming.</p>
+        </div>
+        <p class="leaderboard-submit-status" data-leaderboard-submit-status aria-live="polite"></p>
+      </section>
     </div>
 </section>
 </main>

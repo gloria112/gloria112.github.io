@@ -236,7 +236,9 @@ function initializeDomineering(widget) {
   const holdPanel=widget.querySelector('[data-hold-panel]'),holdHint=widget.querySelector('[data-hold-hint]');
   const holdButtons=[0,1].map(slot=>widget.querySelector(`[data-game-hold="${slot}"]`));
   if (!board || !status || !reset) return;
+  const leaderboard=typeof PackingLeaderboard!=='undefined'?PackingLeaderboard.initialize(widget):null;
   let position=null, state=null, solution=null, solverError=false, worker=null, gameToken=0, currentView='player', preparing=false, selectedSize=7, lastPointer=null, pointerInGame=false;
+  let actions=[],completionReported=false;
   const sourceURL=document.currentScript?.src || new URL('assets/site.js',document.baseURI).href;
   const workerURL=new URL('packing-worker.js',sourceURL);
   workerURL.search=new URL(sourceURL).search;
@@ -331,6 +333,10 @@ function initializeDomineering(widget) {
     grid.innerHTML=markup;
     widget.dataset.gameView=currentView;
     renderQueue();renderHold();updateSummary();refreshPointerPreview();
+    if(state.finished&&!completionReported) {
+      completionReported=true;
+      leaderboard?.finishGame({actions,coveredTiles:state.coveredTiles,optimalTiles:solution?.optimalTiles||0});
+    }
   }
 
   function focusNextAction() {
@@ -345,6 +351,7 @@ function initializeDomineering(widget) {
     if(anchor===-1)return;
     const next=placePackingPiece(state,anchor);
     if(next===state)return;
+    actions.push({type:'place',anchor});
     state=next;render();
     if(keyboard)focusNextAction();
   }
@@ -352,6 +359,7 @@ function initializeDomineering(widget) {
     if(!state||preparing||currentView!=='player')return;
     const next=holdPackingPiece(state,slot);
     if(next===state)return;
+    actions.push({type:'hold',slot});
     state=next;render();
     if(keyboard)focusNextAction();
   }
@@ -403,6 +411,7 @@ function initializeDomineering(widget) {
   function preparePuzzle(seed,size) {
     if(worker)worker.terminate();
     worker=null;position=null;state=null;solution=null;solverError=false;preparing=true;currentView='player';lastPointer=null;
+    actions=[];completionReported=false;
     const extent=size*32+16;
     board.setAttribute('viewBox',`${(400-size*32)/2-8} 0 ${extent} ${extent}`);
     widget.dataset.size=String(size);
@@ -478,6 +487,7 @@ function initializeDomineering(widget) {
   function showSetup(focusChoice=false) {
     if(worker)worker.terminate();worker=null;gameToken++;
     position=null;state=null;solution=null;preparing=false;currentView='player';lastPointer=null;
+    actions=[];completionReported=false;leaderboard?.cancelGame(selectedSize);
     showPreparation('',false);
     if(setup)setup.toggleAttribute('hidden',false);
     if(play)play.toggleAttribute('hidden',true);
@@ -487,18 +497,30 @@ function initializeDomineering(widget) {
   function startSelectedGame() {
     if(setup)setup.toggleAttribute('hidden',true);
     if(play)play.toggleAttribute('hidden',false);
-    const seed=typeof crypto!=='undefined'&&typeof crypto.getRandomValues==='function'?crypto.getRandomValues(new Uint32Array(1))[0]:Math.floor(Math.random()*4294967296);
-    widget.dataset.seed=String(seed);preparePuzzle(seed,selectedSize);
+    const size=selectedSize;
+    const begin=ticket=>{
+      const seed=ticket?.seed??(typeof crypto!=='undefined'&&typeof crypto.getRandomValues==='function'?crypto.getRandomValues(new Uint32Array(1))[0]:Math.floor(Math.random()*4294967296));
+      widget.dataset.seed=String(seed);preparePuzzle(seed,size);
+    };
+    if(leaderboard) {
+      if(worker)worker.terminate();worker=null;
+      position=null;state=null;solution=null;preparing=true;lastPointer=null;
+      actions=[];completionReported=false;
+      const token=++gameToken;
+      showPreparation();
+      leaderboard.startGame(size).then(ticket=>{if(token===gameToken)begin(ticket);});
+    } else begin(null);
     const reducedMotion=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
     widget.scrollIntoView?.({block:'start',behavior:reducedMotion?'auto':'smooth'});
   }
   sizeButtons.forEach(button=>button.addEventListener('click',()=>{
     const size=Number(button.dataset.gameSize);
-    if([5,7,9].includes(size)){selectedSize=size;updateSizeChoice();}
+    if([5,7,9].includes(size)){selectedSize=size;updateSizeChoice();leaderboard?.setSize(size);}
   }));
   if(start)start.addEventListener('click',startSelectedGame);
   reset.addEventListener('click',()=>{
     if(!position||preparing)return;
+    actions=[];completionReported=false;leaderboard?.resetGame();
     state=packingState(position);currentView='player';lastPointer=null;render();
   });
   if(newGame)newGame.addEventListener('click',()=>showSetup(true));

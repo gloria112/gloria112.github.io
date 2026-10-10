@@ -1,0 +1,214 @@
+(function (root) {
+  'use strict';
+
+  const controllers = new WeakMap();
+  const supportedSizes = [5, 7, 9];
+
+  function qualifiesForLeaderboard(result, entries) {
+    if (entries.length < 10) return true;
+    const last = entries[9];
+    // Compare exact fractions so a rounded display percentage never decides a tie.
+    if (result.optimalTiles > 0 && last.optimalTiles > 0) {
+      return result.coveredTiles * last.optimalTiles >= last.coveredTiles * result.optimalTiles;
+    }
+    const score = result.optimalTiles ? result.coveredTiles / result.optimalTiles : 1;
+    const threshold = last.optimalTiles ? last.coveredTiles / last.optimalTiles : 1;
+    return score >= threshold;
+  }
+
+  function initialize(widget) {
+    if (controllers.has(widget)) return controllers.get(widget);
+    const base = (widget.dataset.leaderboardApi || '').replace(/\/+$/, '');
+    const status = widget.querySelector('[data-leaderboard-status]');
+    const list = widget.querySelector('[data-leaderboard-list]');
+    const submitPanel = widget.querySelector('[data-leaderboard-submit-panel]');
+    const submitStatus = widget.querySelector('[data-leaderboard-submit-status]');
+    const submitButton = widget.querySelector('[data-leaderboard-submit]');
+    const namePicker = widget.querySelector('[data-leaderboard-name]');
+    const sizeButtons = [...widget.querySelectorAll('[data-leaderboard-size]')];
+    const pending = new Map();
+    const cache = new Map();
+    let displayedSize = 7, serial = 0, listRevision = 0, active = null;
+
+    function text(element, value) { if (element) element.textContent = value; }
+    function hideSubmission() {
+      if (submitPanel) submitPanel.toggleAttribute('hidden', true);
+      if (submitButton) submitButton.disabled = true;
+    }
+    function cancelRequest(kind) {
+      pending.get(kind)?.abort();
+      pending.delete(kind);
+    }
+    async function request(kind, path, body) {
+      if (!base) throw new Error('Leaderboard unavailable');
+      cancelRequest(kind);
+      const abort = new AbortController();
+      pending.set(kind, abort);
+      const timeout = setTimeout(() => abort.abort(), 4500);
+      try {
+        const response = await fetch(base + path, {
+          method: body === undefined ? 'GET' : 'POST',
+          credentials: 'omit', signal: abort.signal,
+          ...(body === undefined ? {} : {headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})
+        });
+        if (!response.ok) throw new Error('Leaderboard request failed');
+        const data = await response.json();
+        if (abort.signal.aborted || pending.get(kind) !== abort) throw new Error('Request cancelled');
+        return data;
+      } finally {
+        clearTimeout(timeout);
+        if (pending.get(kind) === abort) pending.delete(kind);
+      }
+    }
+    function checkedEntries(data, size) {
+      if (data?.size !== size || !Array.isArray(data.entries)) throw new Error('Invalid leaderboard response');
+      const entries = data.entries.slice(0, 10);
+      if (entries.some(entry => !entry || !(typeof entry.id === 'string' || (Number.isSafeInteger(entry.id) && entry.id > 0))
+        || !Number.isFinite(entry.coveredTiles) || !Number.isFinite(entry.optimalTiles)
+        || entry.coveredTiles < 0 || entry.optimalTiles < entry.coveredTiles)) throw new Error('Invalid leaderboard entry');
+      return entries;
+    }
+    function renderEntries(entries, size) {
+      if (displayedSize !== size) return;
+      if (list) {
+        list.replaceChildren();
+        entries.forEach((entry, index) => {
+          const item = document.createElement('li');
+          item.className = 'leaderboard-entry';
+          const rank = document.createElement('span');
+          rank.className = 'leaderboard-rank'; rank.textContent = String(index + 1);
+          const name = document.createElement('span');
+          name.className = 'leaderboard-name'; name.textContent = typeof entry.name === 'string' && entry.name ? entry.name : 'Anonymous';
+          const score = document.createElement('span');
+          score.className = 'leaderboard-score';
+          const percentage = entry.optimalTiles ? entry.coveredTiles / entry.optimalTiles * 100 : 100;
+          score.textContent = percentage.toFixed(1).replace(/\.0$/, '') + '%';
+          score.title = `${entry.coveredTiles} / ${entry.optimalTiles} squares`;
+          item.append(rank, name, score); list.appendChild(item);
+        });
+      }
+      text(status, entries.length ? `Top ${entries.length} · ${size} × ${size}` : `No scores yet for ${size} × ${size}.`);
+    }
+    async function loadEntries(size, kind = 'list') {
+      const data = await request(kind, `/api/leaderboard?size=${size}`);
+      const entries = checkedEntries(data, size);
+      cache.set(size, {entries, loadedAt: Date.now()});
+      renderEntries(entries, size);
+      return entries;
+    }
+    function setSize(size, force = false) {
+      if (!supportedSizes.includes(size)) return;
+      const revision = ++listRevision;
+      displayedSize = size;
+      cancelRequest('list');
+      sizeButtons.forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.leaderboardSize) === size)));
+      const cached = cache.get(size);
+      if (cached && !force && Date.now() - cached.loadedAt < 30000) {
+        renderEntries(cached.entries, size); return;
+      }
+      if (list) list.replaceChildren();
+      text(status, 'Loading leaderboard…');
+      return loadEntries(size).catch(() => {
+        if (displayedSize === size && listRevision === revision) text(status, 'Leaderboard unavailable. Please try again later.');
+      });
+    }
+    function cancelGame(size = displayedSize) {
+      serial++; active = null;
+      ['start', 'eligibility', 'submit'].forEach(cancelRequest);
+      hideSubmission(); text(submitStatus, '');
+      setSize(size);
+    }
+    async function startGame(size) {
+      cancelGame(size);
+      const id = serial;
+      active = {id, size, ticket: null, finished: false, submitted: false, qualified: false};
+      text(submitStatus, 'Connecting this game to the leaderboard…');
+      try {
+        const data = await request('start', '/api/game', {size});
+        if (!active || active.id !== id) return null;
+        if (data?.size !== size || typeof data.ticket !== 'string' || !data.ticket
+          || !Number.isInteger(data.seed) || data.seed < 0 || data.seed > 4294967295) throw new Error('Invalid game ticket');
+        active.ticket = data.ticket;
+        text(submitStatus, '');
+        return {ticket: data.ticket, seed: data.seed, size};
+      } catch (error) {
+        if (active?.id === id) text(submitStatus, 'Offline game: you can play, but this result cannot enter the leaderboard.');
+        return null;
+      }
+    }
+    function resetGame() {
+      if (!active) return;
+      ['eligibility', 'submit'].forEach(cancelRequest);
+      active = {...active, id: ++serial, finished: false, qualified: false, result: null};
+      hideSubmission();
+      text(submitStatus, active.submitted ? 'This game’s score is already submitted. Start a New game for another entry.'
+        : active.ticket ? '' : 'Offline game: you can play, but this result cannot enter the leaderboard.');
+    }
+    async function finishGame(result) {
+      if (!active || active.finished) return;
+      active.finished = true;
+      const id = active.id, size = active.size;
+      active.result = {...result, actions: result.actions.map(action => ({...action}))};
+      hideSubmission();
+      if (active.submitted) {
+        text(submitStatus, 'This game’s score is already submitted. Start a New game for another entry.'); return;
+      }
+      if (!active.ticket) {
+        text(submitStatus, 'Offline result: leaderboard submission is unavailable for this game.'); return;
+      }
+      text(submitStatus, 'Checking the top 10…');
+      try {
+        const entries = await loadEntries(size, 'eligibility');
+        if (!active || active.id !== id) return;
+        active.qualified = qualifiesForLeaderboard(active.result, entries);
+        if (active.qualified) {
+          if (submitPanel) submitPanel.toggleAttribute('hidden', false);
+          if (submitButton) submitButton.disabled = false;
+          text(submitStatus, `Your score qualifies for the ${size} × ${size} top 10. Choose a nickname if you like, then submit.`);
+        } else text(submitStatus, 'This score did not reach the top 10 for this board size.');
+      } catch (error) {
+        if (active?.id === id) {
+          // The server can still decide eligibility if the separate list request failed.
+          active.qualified = true;
+          if (submitPanel) submitPanel.toggleAttribute('hidden', false);
+          if (submitButton) submitButton.disabled = false;
+          text(submitStatus, 'Could not check the top 10. You can try submitting; the leaderboard will verify your result.');
+        }
+      }
+    }
+    async function submit() {
+      if (!active?.finished || !active.ticket || !active.qualified || active.submitted || pending.has('submit')) return;
+      const id = active.id, size = active.size;
+      if (submitButton) submitButton.disabled = true;
+      text(submitStatus, 'Submitting score…');
+      try {
+        const data = await request('submit', '/api/leaderboard', {
+          ticket: active.ticket, actions: active.result.actions, name: namePicker?.value || null
+        });
+        if (!active || active.id !== id) return;
+        const entries = checkedEntries(data, size);
+        if (typeof data.qualified !== 'boolean' && data.alreadySubmitted !== true) throw new Error('Invalid submission response');
+        active.submitted = true;
+        cache.set(size, {entries, loadedAt: Date.now()}); renderEntries(entries, size);
+        hideSubmission();
+        text(submitStatus, data.alreadySubmitted ? 'This game’s score has already been submitted.'
+          : data.qualified ? `Your score is on the ${size} × ${size} leaderboard.` : 'The top 10 changed before submission. This score did not qualify.');
+      } catch (error) {
+        if (active?.id === id) {
+          if (submitButton) submitButton.disabled = false;
+          text(submitStatus, 'Could not submit your score. Please try again.');
+        }
+      }
+    }
+    sizeButtons.forEach(button => button.addEventListener('click', () => setSize(Number(button.dataset.leaderboardSize), true)));
+    if (submitButton) submitButton.addEventListener('click', submit);
+    hideSubmission();
+    const controller = {startGame, cancelGame, resetGame, finishGame, setSize};
+    controllers.set(widget, controller);
+    return controller;
+  }
+
+  const api = {initialize, qualifiesForLeaderboard};
+  root.PackingLeaderboard = api;
+  if (typeof module === 'object' && module.exports) module.exports = api;
+})(globalThis);

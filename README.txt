@@ -2,7 +2,8 @@ JOHANNES BRÜSTLE — ACADEMIC WEBSITE
 
 A responsive static website with a restrained science-fiction influence:
 midnight blue, geometric typography, subtle grid lines, and cool-blue accents.
-No build step, database, or paid hosting is required.
+The academic pages use static files on GitHub Pages. The optional shared
+puzzle leaderboards use a separate Cloudflare Worker with a D1 database.
 
 PAGES
 index.html                 About and recent research
@@ -15,6 +16,7 @@ assets/site.js             Paper filters, search, and single-player shape game
 assets/packing-pieces.js   Shared piece geometry
 assets/packing-worker.js   Seeded puzzle generation
 assets/packing-solver.js   Packing and optimal-layout verification
+assets/leaderboard.js      Shared leaderboard and optional score submission
 
 PUBLISH ON GITHUB PAGES
 1. Create a public repository named jbrustle01.github.io, under the jbrustle01 account.
@@ -64,6 +66,23 @@ benchmark is certified by that area-bound packing: it remains achievable
 without holding, and no use of hold can exceed the board's area bound.
 Puzzle preparation runs
 separately from the page in assets/packing-worker.js and packing-solver.js.
+
+LEADERBOARDS
+A shared top ten is kept separately for 5-by-5, 7-by-7 and 9-by-9 boards.
+Scores are ranked by exact covered/optimal percentage, with newer submissions
+first in a tie. Adding a qualifying score is optional: visitors can choose an
+approved nickname or remain Anonymous. Names are also checked on the server.
+The service regenerates the signed starting seed and replays all legal moves
+before accepting a score. Submitted percentages are never trusted. This
+checks a legal replay; it does not claim to distinguish humans from bots.
+The database keeps at most 30 scores and no discarded score history. Anonymous
+one-use submission receipts (no name or score) expire after 24 hours. One
+score may be added per starting ticket; Reset preserves an already-added score.
+The static game remains playable if the score service is unavailable, with
+an explicit message that the local game cannot submit a leaderboard score.
+The API origin is configured in teaching/index.html as data-leaderboard-api.
+Backend source and deployment records are maintained separately from the
+public academic-site repository. No signing key is shipped to visitors.
 
 Replace assets/johannes-brustle-cv.pdf to update the downloadable CV.
 

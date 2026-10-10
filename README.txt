@@ -11,7 +11,10 @@ teaching/index.html        Teaching experience
 cv/index.html              Academic background
 assets/johannes-brustle-cv.pdf  Downloadable public CV
 assets/style.css           Appearance and responsive layout
-assets/site.js             Paper filters, search, and two-player shape game
+assets/site.js             Paper filters, search, and single-player shape game
+assets/packing-pieces.js   Shared piece geometry
+assets/packing-worker.js   Seeded puzzle generation
+assets/packing-solver.js   Packing and optimal-layout verification
 
 PUBLISH ON GITHUB PAGES
 1. Create a public repository named jbrustle01.github.io, under the jbrustle01 account.
@@ -30,12 +33,23 @@ Edit the relevant HTML file. Publication entries are ordinary HTML article
 elements in research/index.html. Selected papers also appear on index.html.
 The content is present without JavaScript, so search engines can read it.
 The optional JavaScript adds paper search, category filters, and an interactive
-7-by-7 shape-placement game on the homepage, inspired by Domineering.
-Players must place their current piece in its fixed orientation: a domino,
-a three-square bar, or an L-shaped triomino. Each player sees two pieces ahead.
-A fresh seed fixes two to six random blocked squares, with no symmetry
-requirement, and both full piece sequences at the start.
-New game generates a new seed; Reset replays the same board and sequences.
+13-by-13 single-player shape-placement game at the bottom of the Teaching page.
+Every piece covers five squares. All connected five-square shapes are
+possible, including their distinct rotations and reflections.
+Place the current piece without rotating or skipping it. Only the next piece
+is visible. The game ends when the current piece has no legal placement.
+A fresh seed fixes eight to twelve random blocked squares, with no symmetry
+requirement, and the full sequence of pieces and orientations.
+Boards mix scattered blockers with small clusters and exclude stranded
+regions smaller than a piece. Each puzzle is generated with a packing that
+reaches the free-area bound, then its pieces are shuffled into arrival order.
+Generation favors varied families and limits long runs of the same family.
+New game generates a fresh seed; Reset replays the same board and sequence.
+At the end, compare your layout with the optimal hindsight solution for the
+same board and piece order. The score is 100 times your covered squares
+divided by the optimal covered squares. The optimal
+benchmark is certified by that area-bound packing. Puzzle preparation runs
+separately from the page in assets/packing-worker.js and packing-solver.js.
 
 Replace assets/johannes-brustle-cv.pdf to update the downloadable CV.
 

@@ -12,7 +12,41 @@
   <link rel="canonical" href="https://jbrustle01.github.io/teaching/">
   <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
   <link rel="stylesheet" href="../assets/style.css">
-  <script src="../assets/site.js" defer></script>
+  <script src="../assets/packing-pieces.js?v=pentomino-7" defer></script>
+  <script src="../assets/site.js?v=pentomino-7" defer></script>
+  <style id="packing-game-style">
+    .game-section{padding:52px 0 60px}
+    .no-js .game-section{display:none}
+    .domineering-field{width:min(100%,780px);margin:0 auto}
+    .game-layout{display:grid;grid-template-columns:minmax(0,1fr) 142px;gap:24px;align-items:center}
+    .game-sidebar{display:flex;flex-direction:column;gap:20px;justify-content:center;min-width:0}
+    .game-score{font-family:var(--mono,monospace);color:#a8c2d2;font-size:11px;line-height:1.7}
+    .game-score strong{display:block;font-family:var(--display);font-size:40px;font-weight:400;line-height:1.2;color:#d9eff7;letter-spacing:-.04em;margin-bottom:7px}
+    .game-score span{display:block}
+    .game-results{display:grid;gap:8px}
+    .game-results button{font-family:var(--mono,monospace);font-size:11px;color:#9bb5c5;background:transparent;border:1px solid #3c5669;border-radius:3px;padding:8px 6px;cursor:pointer;line-height:1.4}
+    .game-results button[aria-pressed="true"]{color:#dcf0f7;background:#1a3548;border-color:#8ac5d8}
+    .game-results button:disabled{opacity:.45;cursor:default}
+    .game-results button:hover:not(:disabled),.game-results button:focus-visible{border-color:#a4cbdc;color:#e2f5fc}
+    .piece-queues{font-family:var(--mono,monospace);color:#95c5d7}
+    .piece-label{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+    .piece-slots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+    .piece-slot{display:flex;flex-direction:column;align-items:center;gap:7px;font-size:10px}
+    .piece-preview{display:block;width:100%;height:66px;padding:7px;border:1px solid #2b3b4b;border-radius:3px;background:#10213080}
+    .piece-slot.is-current .piece-preview{border-color:currentColor;background:#18304480}
+    .piece-slot svg{display:block;width:100%;height:100%;overflow:visible}
+    .domineering-board{display:block;width:100%;height:auto;overflow:visible}
+    .domineering-board [data-domino-cell]{cursor:pointer;outline:none}
+    .domineering-board [data-domino-cell][aria-disabled="true"]{cursor:default}
+    .domineering-board [data-domino-cell]:focus-visible rect{stroke:#e2f5fc;stroke-width:1.5}
+    .game-controls{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:16px auto 0;font-family:var(--mono,monospace);font-size:11px;letter-spacing:.02em;color:#a8c2d2}
+    .game-actions{display:flex;gap:8px;align-items:center}
+    .game-controls button{font:inherit;letter-spacing:inherit;color:#a8c2d2;background:transparent;border:1px solid #3c5669;border-radius:3px;padding:6px 10px;cursor:pointer;line-height:1.3}
+    .game-controls button:hover,.game-controls button:focus-visible{color:#e2f5fc;border-color:#a4cbdc}
+    .game-help{font-family:var(--display);font-size:22px;letter-spacing:-.02em;text-align:left;color:#c9dde7;margin:0 0 28px;line-height:1.4}
+    @media(max-width:600px){.game-section{padding:36px 0 42px}.game-layout{display:flex;flex-direction:column;gap:22px}.domineering-board{max-width:430px}.game-sidebar{width:100%;flex-direction:row;align-items:center;gap:20px}.piece-queues{width:142px}.game-score{width:130px}.game-results{width:142px}.game-score strong{font-size:34px}.game-help{font-size:20px;margin-bottom:20px}.game-controls{font-size:10px;margin-top:24px}.game-controls button{padding:7px 9px}}
+    @media print{.game-section{display:none}}
+  </style>
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -27,7 +61,28 @@
 <article class="cv-entry"><p class="date">August 2022 – April 2023</p><h3>Introduction to Abstract Mathematics</h3><p>London School of Economics</p></article>
 <article class="cv-entry"><p class="date">January 2022 – April 2022</p><h3>Optimization</h3><p>London School of Economics</p></article>
 <article class="cv-entry"><p class="date">January 2021 – April 2021</p><h3>Further Quantitative Methods</h3><p>London School of Economics</p></article>
-<article class="cv-entry"><p class="date">September 2017 – April 2018</p><h3>Algorithm Design</h3><p>McGill University</p></article></div></section></main>
+<article class="cv-entry"><p class="date">September 2017 – April 2018</p><h3>Algorithm Design</h3><p>McGill University</p></article></div></section>
+<section class="section game-section" id="play" aria-labelledby="game-instructions">
+    <div class="domineering-field" data-domineering role="group" aria-label="Single-player shape game">
+      <p class="game-help" id="game-instructions" data-game-help>Cover as many squares as you can.</p>
+      <div class="game-layout">
+      <svg xmlns="http://www.w3.org/2000/svg" id="domineering-board" data-domineering-board class="domineering-board" viewBox="-16 0 432 432" fill="none" role="group" aria-labelledby="dm-title" aria-describedby="dm-desc">
+        <title id="dm-title">Single-player shape game</title>
+        <desc id="dm-desc">Cover as many squares as you can. Place your current piece on empty squares of the thirteen-by-thirteen board. Every piece covers five squares. You can see the next piece. Shapes and orientations are fixed by the starting seed, and you cannot skip pieces. Hover or focus a square to preview placement, then click or press Enter. The game ends when the current piece cannot fit. Compare your final layout with the optimal placement for the same board and sequence. Your score is the percentage of the optimal number of squares that you covered. New game creates a fresh seed; Reset replays the same start.</desc>
+      </svg>
+      <div class="game-sidebar">
+        <div class="piece-queues" data-piece-queues aria-label="Upcoming pieces"></div>
+        <div class="game-score" data-game-score aria-live="polite" hidden></div>
+        <div class="game-results" data-game-results hidden>
+          <button type="button" data-game-view="player" aria-pressed="true">Your result</button>
+          <button type="button" data-game-view="optimal" aria-pressed="false" disabled>Optimal solution</button>
+        </div>
+      </div>
+      </div>
+      <div class="game-controls"><span data-game-status aria-live="polite">0 squares covered</span><span class="game-actions"><button type="button" data-game-new>New game</button><button type="button" data-game-reset>Reset</button></span></div>
+    </div>
+</section>
+</main>
   <footer class="site-footer wrap">
     <div><div class="footer-name">Johannes Brüstle</div><p class="footer-detail">Sapienza University of Rome · DIAG</p></div>
     <div class="footer-links"><a href="mailto:brustle@diag.uniroma1.it">Email</a><a href="https://scholar.google.com/citations?user=ef6YVs4AAAAJ&amp;hl=en&amp;sortby=pubdate">Google Scholar <span aria-hidden="true">↗</span></a><a href="../assets/johannes-brustle-cv.pdf">CV <span aria-hidden="true">↓</span></a></div>

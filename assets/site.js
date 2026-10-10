@@ -48,35 +48,9 @@ function makeGameRandom(seed) {
   };
 }
 
-function domineeringState(size, blocked, dominoes = [], player = 'blue') {
-  const occupied = new Set(blocked);
-  dominoes.forEach(domino => domino.cells.forEach(cell => occupied.add(cell)));
-  const legalMoves = [];
-  for (let anchor = 0; anchor < size * size; anchor++) {
-    const row = Math.floor(anchor / size);
-    const column = anchor % size;
-    if ((player === 'blue' && row === size - 1) || (player === 'red' && column === size - 1)) continue;
-    const next = anchor + (player === 'blue' ? size : 1);
-    if (!occupied.has(anchor) && !occupied.has(next)) legalMoves.push(anchor);
-  }
-  return {
-    size, blocked: [...blocked], dominoes: [...dominoes], player, legalMoves,
-    winner: legalMoves.length ? null : (player === 'blue' ? 'red' : 'blue')
-  };
-}
-
-function placeDomineeringDomino(state, anchor) {
-  if (state.winner || !state.legalMoves.includes(anchor)) return state;
-  const domino = {
-    anchor, player: state.player,
-    cells: [anchor, anchor + (state.player === 'blue' ? state.size : 1)]
-  };
-  return domineeringState(state.size, state.blocked, [...state.dominoes, domino], state.player === 'blue' ? 'red' : 'blue');
-}
-
 function generateDomineeringPosition(rng = Math.random) {
-  const size = 7;
-  const count = 2 + Math.floor(rng() * 5);
+  const size = 13;
+  const count = 8 + Math.floor(rng() * 5);
   const cells = Array.from({ length: size * size }, (_, index) => index);
   // A partial Fisher–Yates shuffle samples distinct blocked squares uniformly.
   for (let index = 0; index < count; index++) {
@@ -86,14 +60,9 @@ function generateDomineeringPosition(rng = Math.random) {
   return { size, blocked: cells.slice(0, count).sort((a, b) => a - b) };
 }
 
-// All placements and previews share these fixed, player-specific shapes.
-function shapeOffsets(kind, player) {
-  const shapes = {
-    domino: { blue: [[0,0],[1,0]], red: [[0,0],[0,1]] },
-    straight: { blue: [[0,0],[1,0],[2,0]], red: [[0,0],[0,1],[0,2]] },
-    corner: { blue: [[0,0],[1,0],[1,1]], red: [[0,0],[0,1],[1,0]] }
-  };
-  return (shapes[kind]?.[player] || []).map(offset => [...offset]);
+// The browser and optimizer use the same complete pentomino geometry.
+function shapeOffsets(kind, orientation) {
+  return PackingPieces.offsets(kind, orientation);
 }
 
 function shapeCells(kind, player, anchor, size) {
@@ -103,53 +72,52 @@ function shapeCells(kind, player, anchor, size) {
   const row = Math.floor(anchor / size), column = anchor % size;
   const cells = [];
   for (const [dr, dc] of offsets) {
-    if (row + dr >= size || column + dc >= size) return null;
+    if (row + dr < 0 || row + dr >= size || column + dc < 0 || column + dc >= size) return null;
     cells.push((row + dr) * size + column + dc);
   }
   return cells;
 }
 
-function generateShapePosition(seed) {
+function generatePackingPosition(seed) {
   const normalizedSeed = Number(seed) >>> 0;
   const position = generateDomineeringPosition(makeGameRandom(normalizedSeed));
-  const kinds = ['domino', 'straight', 'corner'];
-  const sequences = {};
-  for (const [player, salt] of [['blue', 0x9e3779b9], ['red', 0x243f6a88]]) {
-    const rng = makeGameRandom(normalizedSeed ^ salt);
-    // A 7×7 board cannot use this many pieces; the entire future is fixed now.
-    sequences[player] = Array.from({ length: 32 }, () => kinds[Math.floor(rng() * kinds.length)]);
-  }
-  return { ...position, seed: normalizedSeed, sequences };
+  const rng = makeGameRandom(normalizedSeed ^ 0x9e3779b9);
+  const kinds = PackingPieces.families;
+  const sequence = Array.from({ length: 64 }, () => {
+    const kind = kinds[Math.floor(rng() * kinds.length)];
+    const orientations = PackingPieces.orientations(kind);
+    return { kind, orientation: orientations[Math.floor(rng() * orientations.length)] };
+  });
+  return { ...position, seed: normalizedSeed, sequence };
 }
 
-function shapePlacementState(position, pieces = [], draws = { blue: 0, red: 0 }, player = 'blue') {
+function packingState(position, placements = []) {
   const occupied = new Set(position.blocked);
-  pieces.forEach(piece => piece.cells.forEach(cell => occupied.add(cell)));
-  const currentPiece = position.sequences[player][draws[player]];
+  placements.forEach(piece => piece.cells.forEach(cell => occupied.add(cell)));
+  const index = placements.length;
+  const currentPiece = position.sequence[index];
   const legalMoves = [];
-  for (let anchor = 0; anchor < position.size * position.size; anchor++) {
-    const cells = shapeCells(currentPiece, player, anchor, position.size);
-    if (cells && cells.every(cell => !occupied.has(cell))) legalMoves.push(anchor);
+  if (currentPiece) {
+    for (let anchor = 0; anchor < position.size * position.size; anchor++) {
+      const cells = shapeCells(currentPiece.kind, currentPiece.orientation, anchor, position.size);
+      if (cells && cells.every(cell => !occupied.has(cell))) legalMoves.push(anchor);
+    }
   }
   return {
-    size: position.size, blocked: [...position.blocked], seed: position.seed,
-    sequences: position.sequences, pieces: [...pieces], draws: { ...draws }, player, currentPiece,
-    queues: {
-      blue: position.sequences.blue.slice(draws.blue, draws.blue + 3),
-      red: position.sequences.red.slice(draws.red, draws.red + 3)
-    },
-    legalMoves, winner: legalMoves.length ? null : (player === 'blue' ? 'red' : 'blue')
+    size: position.size, blocked: [...position.blocked], seed: position.seed, sequence: position.sequence,
+    placements: [...placements], index, currentPiece, queue: position.sequence.slice(index, index + 2),
+    legalMoves, coveredTiles: placements.reduce((sum,piece) => sum + piece.cells.length, 0),
+    finished: legalMoves.length === 0
   };
 }
 
-function placeShape(state, anchor) {
-  if (state.winner || !state.legalMoves.includes(anchor)) return state;
+function placePackingPiece(state, anchor) {
+  if (state.finished || !state.legalMoves.includes(anchor)) return state;
   const piece = {
-    anchor, player: state.player, kind: state.currentPiece,
-    cells: shapeCells(state.currentPiece, state.player, anchor, state.size)
+    index: state.index, ...state.currentPiece, anchor,
+    cells: shapeCells(state.currentPiece.kind, state.currentPiece.orientation, anchor, state.size)
   };
-  const draws = { ...state.draws, [state.player]: state.draws[state.player] + 1 };
-  return shapePlacementState(state, [...state.pieces, piece], draws, state.player === 'blue' ? 'red' : 'blue');
+  return packingState(state, [...state.placements, piece]);
 }
 
 // Trace the boundary of a polyomino so every piece reads as one connected shape.
@@ -190,12 +158,8 @@ function shapeOutline(kind, player, unit, inset, originX, originY) {
   return path+'Z';
 }
 
-function shapeDescription(kind, player) {
-  const orientation = player === 'blue' ? 'vertical' : 'horizontal';
-  if (kind === 'domino') return `${orientation} domino`;
-  if (kind === 'straight') return `${orientation} straight triomino`;
-  return player === 'blue' ? 'L triomino, two cells down and one right at the bottom'
-    : 'L triomino, two cells across the top and one down at the left';
+function shapeDescription(kind, orientation) {
+  return PackingPieces.description(kind, orientation);
 }
 
 function initializeDomineering(widget) {
@@ -203,61 +167,143 @@ function initializeDomineering(widget) {
   const status=widget.querySelector('[data-game-status]'),reset=widget.querySelector('[data-game-reset]');
   const newGame=widget.querySelector('[data-game-new]'),help=widget.querySelector('[data-game-help]');
   const board=widget.querySelector('[data-domineering-board]'),queues=widget.querySelector('[data-piece-queues]');
+  const score=widget.querySelector('[data-game-score]'),results=widget.querySelector('[data-game-results]');
+  const viewButtons=[...widget.querySelectorAll('[data-game-view]')];
   if (!board || !status || !reset) return;
-  let position, state;
+  let position=null, state=null, solution=null, solverError=false, worker=null, gameToken=0, currentView='player', preparing=false;
+  const sourceURL=document.currentScript?.src || new URL('assets/site.js',document.baseURI).href;
+  const workerURL=new URL('packing-worker.js',sourceURL);
+  workerURL.search=new URL(sourceURL).search;
   const grid=document.createElementNS('http://www.w3.org/2000/svg','g');
   grid.setAttribute('data-domineering-grid','');
   board.appendChild(grid);
-  const playerName=player=>player==='blue'?'Blue':'Red';
   const cellPosition=anchor=>({x:(400-state.size*32+2)/2+(anchor%state.size)*32,y:6+Math.floor(anchor/state.size)*32});
-  const pieceColor=player=>player==='blue'?'#99dcee':'#e9a39b';
 
   function pieceDrawing(piece,preview=false) {
-    const {x,y}=cellPosition(piece.anchor),color=pieceColor(piece.player);
-    const d=shapeOutline(piece.kind,piece.player,32,2.5,x-1,y-1);
-    return `<path data-placed-shape="${piece.kind}" d="${d}" fill="${preview?color:`url(#dm-${piece.player})`}" fill-opacity="${preview?'.17':'.88'}" stroke="${color}" stroke-width="${preview?'1.8':'.8'}" stroke-linejoin="round"/>`;
+    const {x,y}=cellPosition(piece.anchor);
+    const d=shapeOutline(piece.kind,piece.orientation,32,2.5,x-1,y-1);
+    return `<path data-placed-shape="${piece.kind}" d="${d}" fill="${preview?'#99dcee':'url(#dm-piece)'}" fill-opacity="${preview?'.17':'.88'}" stroke="#99dcee" stroke-width="${preview?'1.8':'.8'}" stroke-linejoin="round"/>`;
   }
 
-  function renderQueues() {
+  function renderQueue() {
     if (!queues) return;
-    queues.innerHTML=['blue','red'].map(player=>`<div class="piece-queue${!state.winner&&state.player===player?' is-active':''}" data-player="${player}"><span class="piece-label">${playerName(player)}</span><div class="piece-slots">${state.queues[player].map((kind,index)=>{
-      const offsets=shapeOffsets(kind,player),width=1+Math.max(...offsets.map(offset=>offset[1])),height=1+Math.max(...offsets.map(offset=>offset[0]));
-      const d=shapeOutline(kind,player,10,.8,(40-width*10)/2,(40-height*10)/2);
-      const label=['Now','Next','Then'][index];
-      return `<div class="piece-slot${index===0?' is-current':''}" data-piece-kind="${kind}"><div class="piece-preview"><svg viewBox="0 0 40 40" role="img" aria-label="${playerName(player)} ${label.toLowerCase()}: ${shapeDescription(kind,player)}"><path d="${d}" fill="${pieceColor(player)}" fill-opacity="${index===0?'.95':'.62'}"/></svg></div><span>${label}</span></div>`;
-    }).join('')}</div></div>`).join('');
+    queues.innerHTML=`<div class="piece-queue is-active" data-player="solo"><span class="piece-label">Your pieces</span><div class="piece-slots">${state.queue.map((piece,index)=>{
+      const offsets=shapeOffsets(piece.kind,piece.orientation);
+      const minColumn=Math.min(...offsets.map(offset=>offset[1])),minRow=Math.min(...offsets.map(offset=>offset[0]));
+      const width=1+Math.max(...offsets.map(offset=>offset[1]))-minColumn,height=1+Math.max(...offsets.map(offset=>offset[0]))-minRow;
+      const unit=Math.min(10,36/Math.max(width,height));
+      const d=shapeOutline(piece.kind,piece.orientation,unit,unit*.08,(40-width*unit)/2-minColumn*unit,(40-height*unit)/2-minRow*unit);
+      const label=['Now','Next'][index];
+      return `<div class="piece-slot${index===0?' is-current':''}" data-piece-kind="${piece.kind}" data-piece-orientation="${piece.orientation}"><div class="piece-preview"><svg viewBox="0 0 40 40" role="img" aria-label="${label}: ${shapeDescription(piece.kind,piece.orientation)}"><path d="${d}" fill="#99dcee" fill-opacity="${index===0?'.95':'.62'}"/></svg></div><span>${label}</span></div>`;
+    }).join('')}</div></div>`;
+  }
+
+  function updateSummary() {
+    if(!state||preparing)return;
+    if(help)help.textContent='Cover as many squares as you can.';
+    if(queues)queues.toggleAttribute('hidden',state.finished);
+    if(results)results.toggleAttribute('hidden',!state.finished);
+    if(score) {
+      score.toggleAttribute('hidden',!state.finished);
+      if(state.finished) {
+        if(solution?.exact) {
+          const percentage=solution.optimalTiles ? state.coveredTiles/solution.optimalTiles*100 : 100;
+          score.innerHTML=`<strong>${percentage.toFixed(1).replace(/\.0$/,'')}%</strong><span>${state.coveredTiles} / ${solution.optimalTiles} squares</span>`;
+        } else score.textContent=solverError?'Optimal solution unavailable.':'Finding optimal solution…';
+      }
+    }
+    viewButtons.forEach(button=>{
+      const selected=button.dataset.gameView===currentView;
+      button.setAttribute('aria-pressed',String(selected));
+      button.disabled=!state.finished||(button.dataset.gameView==='optimal'&&!solution?.exact);
+    });
+    status.textContent=currentView==='optimal'&&solution?.exact?`Optimal: ${solution.optimalTiles} squares`:`${state.coveredTiles} squares covered`;
   }
 
   function render() {
+    if(!state||preparing)return;
+    const placements=currentView==='optimal'&&solution?.exact?solution.placements:state.placements;
     const occupied=new Map();
-    state.pieces.forEach(piece=>piece.cells.forEach(cell=>occupied.set(cell,piece.player)));
+    placements.forEach((piece,index)=>piece.cells.forEach(cell=>occupied.set(cell,index+1)));
     const blocked=new Set(state.blocked);
-    let markup='<defs><linearGradient id="dm-blue" x2="1" y2="1"><stop stop-color="#aadfea"/><stop offset="1" stop-color="#4a8eac"/></linearGradient><linearGradient id="dm-red" x2="1" y2="1"><stop stop-color="#eeb5ab"/><stop offset="1" stop-color="#a76576"/></linearGradient></defs>';
+    let markup='<defs><linearGradient id="dm-piece" x2="1" y2="1"><stop stop-color="#aadfea"/><stop offset="1" stop-color="#4a8eac"/></linearGradient></defs>';
     for(let anchor=0;anchor<state.size*state.size;anchor++) {
-      const {x,y}=cellPosition(anchor),legal=!state.winner&&state.legalMoves.includes(anchor);
-      const unavailable=blocked.has(anchor)?'blocked':occupied.has(anchor)?`occupied by ${playerName(occupied.get(anchor))}`:`place ${shapeDescription(state.currentPiece,state.player)}`;
+      const {x,y}=cellPosition(anchor),legal=!state.finished&&currentView==='player'&&state.legalMoves.includes(anchor);
+      const unavailable=blocked.has(anchor)?'blocked':occupied.has(anchor)?(currentView==='optimal'?`covered by piece ${occupied.get(anchor)}`:'covered'):state.finished?'empty':`place ${shapeDescription(state.currentPiece.kind,state.currentPiece.orientation)}`;
       markup+=`<g data-domino-cell="${anchor}" role="button" tabindex="${legal?0:-1}" aria-disabled="${!legal}" aria-label="Row ${Math.floor(anchor/state.size)+1}, column ${anchor%state.size+1}: ${unavailable}"><rect x="${x}" y="${y}" width="30" height="30" rx="4" fill="${blocked.has(anchor)?'#14202a':'#142837'}" fill-opacity="${blocked.has(anchor)?'.4':'.68'}" stroke="${blocked.has(anchor)?'#24313c':'#416073'}" stroke-width=".7"/>`;
       if(blocked.has(anchor))markup+=`<path d="M${x+12} ${y+12}l6 6m0-6l-6 6" stroke="#50606e" stroke-width=".8"/>`;
       else if(!occupied.has(anchor))markup+=`<circle cx="${x+15}" cy="${y+15}" r=".8" fill="#6d8b9c" opacity=".55"/>`;
       markup+='</g>';
     }
-    markup+='<g pointer-events="none">'+state.pieces.map(piece=>pieceDrawing(piece)).join('')+'</g><g data-domino-preview pointer-events="none"></g>';
+    markup+='<g pointer-events="none">'+placements.map(piece=>pieceDrawing(piece)).join('')+'</g><g data-domino-preview pointer-events="none"></g>';
+    if(currentView==='optimal')markup+='<g data-solution-order pointer-events="none" aria-hidden="true">'+placements.map((piece,index)=>{const {x,y}=cellPosition(piece.anchor);return `<text x="${x+15}" y="${y+18}" text-anchor="middle" fill="#102430" font-family="var(--mono,monospace)" font-size="9" font-weight="600">${index+1}</text>`;}).join('')+'</g>';
     grid.innerHTML=markup;
-    renderQueues();
-    status.textContent=state.winner?`${playerName(state.winner)} wins`:`${playerName(state.player)} to move`;
-    if(help)help.textContent=state.winner?`${playerName(state.player)} cannot fit the required piece.`:'Place your Now piece. You can see two ahead.';
+    widget.dataset.gameView=currentView;
+    renderQueue();updateSummary();
   }
 
   function placePiece(anchor,keyboard) {
-    const next=placeShape(state,anchor);
+    if(!state||preparing||currentView!=='player')return;
+    const next=placePackingPiece(state,anchor);
     if(next===state)return;
     state=next;render();
-    if(keyboard)(state.winner?reset:board.querySelector(`[data-domino-cell="${state.legalMoves[0]}"]`)).focus({preventScroll:true});
+    if(keyboard) {
+      const target=state.finished?(viewButtons.find(button=>button.dataset.gameView==='player')||newGame||reset):board.querySelector(`[data-domino-cell="${state.legalMoves[0]}"]`);
+      target.focus({preventScroll:true});
+    }
   }
   function previewPiece(anchor) {
     const preview=grid.querySelector('[data-domino-preview]');
-    if(preview)preview.innerHTML=!state.winner&&state.legalMoves.includes(anchor)?pieceDrawing({anchor,player:state.player,kind:state.currentPiece},true):'';
+    if(preview)preview.innerHTML=state&&!preparing&&!state.finished&&currentView==='player'&&state.legalMoves.includes(anchor)?pieceDrawing({anchor,...state.currentPiece},true):'';
   }
+
+  function showPreparation(message='Preparing board…',busy=true) {
+    grid.innerHTML='';
+    if(queues){queues.innerHTML='';queues.toggleAttribute('hidden',true);}
+    if(score){score.textContent='';score.toggleAttribute('hidden',true);}
+    if(results)results.toggleAttribute('hidden',true);
+    viewButtons.forEach(button=>{button.disabled=true;button.setAttribute('aria-pressed',String(button.dataset.gameView==='player'));});
+    reset.disabled=true;
+    board.setAttribute('aria-busy',String(busy));
+    widget.dataset.preparing=String(busy);
+    widget.dataset.gameView='player';
+    status.textContent=message;
+    if(help)help.textContent='Cover as many squares as you can.';
+  }
+
+  function preparePuzzle(seed) {
+    if(worker)worker.terminate();
+    worker=null;position=null;state=null;solution=null;solverError=false;preparing=true;currentView='player';
+    const token=++gameToken;
+    showPreparation();
+    function fail() {
+      if(token!==gameToken)return;
+      solverError=true;preparing=false;
+      if(worker)worker.terminate();worker=null;
+      showPreparation('Could not prepare a puzzle. Try New game.',false);
+    }
+    try {
+      const activeWorker=new Worker(workerURL);
+      worker=activeWorker;
+      activeWorker.onmessage=event=>{
+        const data=event.data;
+        if(!data||token!==gameToken||data.id!==token)return;
+        if(data.type==='generated'&&data.solution?.exact===true&&Number.isFinite(data.solution.optimalTiles)
+          &&Array.isArray(data.solution.placements)&&data.position?.seed===seed
+          &&Array.isArray(data.position.sequence)&&Array.isArray(data.position.blocked)) {
+          position=data.position;
+          solution={optimalTiles:data.solution.optimalTiles,placements:data.solution.placements,exact:true};
+          state=packingState(position);preparing=false;solverError=false;currentView='player';
+          reset.disabled=false;board.setAttribute('aria-busy','false');widget.dataset.preparing='false';
+          render();
+          activeWorker.terminate();if(worker===activeWorker)worker=null;
+        } else if(data.type==='error')fail();
+      };
+      activeWorker.onerror=fail;
+      activeWorker.postMessage({id:token,type:'generate',seed});
+    } catch(error) {fail();}
+  }
+
   widget.dataset.gameReady='true';
   const cellFrom=event=>event.target.closest('[data-domino-cell]');
   board.addEventListener('click',event=>{const cell=cellFrom(event);if(cell)placePiece(Number(cell.dataset.dominoCell),false);});
@@ -270,10 +316,17 @@ function initializeDomineering(widget) {
   ['pointerleave','focusout'].forEach(type=>board.addEventListener(type,()=>previewPiece(-1)));
   function startNewGame() {
     const seed=typeof crypto!=='undefined'&&typeof crypto.getRandomValues==='function'?crypto.getRandomValues(new Uint32Array(1))[0]:Math.floor(Math.random()*4294967296);
-    widget.dataset.seed=String(seed);position=generateShapePosition(seed);state=shapePlacementState(position);render();
+    widget.dataset.seed=String(seed);preparePuzzle(seed);
   }
-  reset.addEventListener('click',()=>{state=shapePlacementState(position);render();});
+  reset.addEventListener('click',()=>{
+    if(!position||preparing)return;
+    state=packingState(position);currentView='player';render();
+  });
   if(newGame)newGame.addEventListener('click',startNewGame);
+  viewButtons.forEach(button=>button.addEventListener('click',()=>{
+    if(!state||preparing||!state.finished||(button.dataset.gameView==='optimal'&&!solution?.exact))return;
+    currentView=button.dataset.gameView==='optimal'?'optimal':'player';render();
+  }));
   startNewGame();
 }
 
